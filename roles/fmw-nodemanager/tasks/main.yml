@@ -1,0 +1,44 @@
+################################################################################
+# ==> Main Tasks for nodemanager role
+# ==> Creates nodemanager service
+################################################################################    
+# ==> 
+- name: Run startWeblogic with async
+  command: ./startWebLogic.sh
+  async: 999999999999
+  poll: 0  
+  args:
+    chdir: "{{ domain_user_projects }}/bin"  
+
+- name: Wait for Admin Server to startup
+  wait_for: port={{ admin_server_port }} delay=2 timeout=500
+
+- name: Copy Nodemanager Properties file
+  template: src=nodemanager.properties dest={{ nodemanager_home }} owner={{ oracle_user }} mode=0770
+
+- name: Copy createAuth py
+  template: src=createAuthFiles_set_nodemng_cred.py dest={{ inspy_capture }} owner={{ oracle_user }} mode=0770
+
+- name: Run ant to create auth 
+  expect:
+  args:
+    timeout: 300  
+    chdir: "{{ inspy_capture }}"  
+    command: "ant createAuthFiles_set_nodemng_cred"
+    echo: true
+    responses:
+      "Please enter the Admin Server user name": "{{ weblogic_admin }}"
+      "password": "{{ weblogic_admin_pass }}"
+
+- name: Run ant to start nodemanager 
+  command: "ant startNodeManager"
+  async: 999999999999999
+  poll: 0  
+  args:
+    #timeout: 500  
+    chdir: "{{ inspy_capture }}"  
+
+- name: Wait for Node Manager to startup
+  wait_for: port={{ node_manager_listen_port }} delay=2 timeout=200
+
+

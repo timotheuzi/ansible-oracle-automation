@@ -1,0 +1,20 @@
+################################################################################
+# ==> Main Tasks for fmw-domain Role
+# ==> Creates a Domain with Fussion Middleware Infra software
+# ==> Compatible with 11g
+################################################################################    
+# ==> Create new domain
+- name: copy updated wlst script
+  template: src=wlst.sh dest='{{ oracle_base }}/Middleware_Home/wlserver_10.3/common/bin/' owner={{ oracle_user }} mode=0770
+  become: yes
+
+- name: Run ant to create domain
+  expect:
+  args:
+    timeout: 300  
+    chdir: "{{ inspy_capture }}"  
+    command: "ant create_domain"
+    echo: true
+    responses:
+      "Please enter the Admin Server user name": "{{ weblogic_admin }}"
+      "password": "{{ weblogic_admin_pass }}"

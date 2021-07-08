@@ -1,0 +1,86 @@
+################################################################################
+# ==> Tasks for install Oracle Fussion Middleware software
+# ==> to a RHEL 7 system. Supports version 10.3.6
+################################################################################
+# ==> Install Fussion Middleware Infrastructure
+
+- name: Copy silent.xml file for silent installation
+  template: src=silent.xml dest={{ mw_installer_folder }} owner={{ oracle_user }} #group={{ oracle_group }}
+  become: yes
+
+- name: Copy build.xml file for silent installation
+  template: src=build.xml dest={{ inspy_capture }} owner={{ oracle_user }} #group={{ oracle_group }}
+  become: yes
+  
+- name: execute Weblogic installer
+  command: "{{ jdk_folder }}/bin/java -Xms1024m -Xmx1024m -jar {{ mw_installer_folder }}/{{ mw_installer }} -mode=silent -silent_xml={{ mw_installer_folder }}/silent.xml"
+
+#- name: sleep for 10 seconds and continue with play
+#  wait_for: timeout=10
+#  delegate_to: localhost
+
+- name: Copy inspyrus properties file for inspyrus installation
+  template: src=silent-install.properties dest={{ inspy_capture }} owner={{ oracle_user }} #group={{ oracle_group }}
+  become: yes
+  
+- name: Create temp_ant directory
+  file: state=directory path={{ inspyrus_install }}/InspyrusInstaller/temp_ant owner={{ oracle_user }} group={{ oracle_group }} mode=0770
+
+#- name: Add ORACLE_HOME environment
+#  lineinfile: dest='/home/{{ oracle_user }}/.bashrc' line='export ORACLE_HOME={{ middleware_home }}/Oracle_UCM1'
+
+- name: Add ANT_HOME environment variariables in bashrc
+  lineinfile: dest='/home/{{ oracle_user }}/.bashrc' line='export ANT_HOME={{ ant_home }}'
+
+- name: Add ANT bin folder to path in bashrc
+  lineinfile: dest='/home/{{ oracle_user }}/.bashrc' line='export PATH=${PATH}:${ANT_HOME}/bin'
+
+- name: Run ant to create silent install files 
+  expect:
+  args:
+    timeout: 200
+    chdir: "{{ inspy_capture }}"  
+    command: "ant create_silent_install_files"
+    responses:
+      "Please enter the Admin Server user name:": "{{ weblogic_admin }}"
+      "password": "{{ weblogic_admin_pass }}" 
+
+- name: Run ant to drop repositories
+  command: "ant drop_repository"
+  args:  
+    chdir: "{{ inspy_capture }}"
+
+#- name: sleep for 10 seconds and continue with play
+#  wait_for: timeout=10
+#  delegate_to: localhost
+
+- name: Run ant to create repositories   
+  command: "ant create_repository"
+  args:  
+    chdir: "{{ inspy_capture }}"
+
+- name: Run ant to install SOA 
+  command: "ant install_soa"
+  args:  
+    chdir: "{{ inspy_capture }}"
+
+- name: Changing permission of "{{ inspyrus_install }}"
+  file: path="{{ inspyrus_install }}" owner={{ oracle_user }} mode=0777 recurse=yes
+
+- name: Changing permission of "{{ oracle_base }}"
+  file: path="{{ oracle_base }}" owner={{ oracle_user }} mode=0777 recurse=yes
+
+- name: Run ant to install UCM
+  command: "ant install_ucm"
+  args:  
+    chdir: "{{ inspy_capture }}"
+
+#- name: sleep for 10 seconds and continue with play
+#  wait_for: timeout=10
+#  delegate_to: localhost
+
+- name: Run ant to install OSB
+  command: "ant install_service_bus"
+  args: 
+    chdir: "{{ inspy_capture }}"
+ 

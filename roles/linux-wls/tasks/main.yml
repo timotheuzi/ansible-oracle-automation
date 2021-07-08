@@ -1,0 +1,104 @@
+################################################################################
+# ==> Tasks for linux-wls Role for configure a RHEL 7 system with requirements 
+# ==> for Fusion Middleware infrastructrure installation. Supports version 10.3.6
+################################################################################
+
+# ==> Configure Linux
+# ==> Create user and groups
+#- name: Create groups
+#  group: 
+#   name: "{{ oracle_group }}" 
+#   state: present
+#  become_user: "{{ oracle_user }}"
+    
+#- name: Create user
+#  user: 
+#    name: "{{ oracle_user }}"
+#    groups: "{{ oracle_group }}"
+#    password: "{{ oracle_os_user_pass }}"
+
+- name: Create Inspyrus install directory
+  file: state=directory path={{ install_base }} owner={{ oracle_user }} group={{ oracle_group }}  
+
+- name: Install required libraries
+  yum: name={{ item }} state=present
+  with_items: "{{ packages_list }}"
+  
+- name: Copy "gdown" script to {{ install_base }}
+  template: src=gdown.pl dest={{ install_base }} owner={{ oracle_user }} group={{ oracle_group }} mode=0755
+
+#- name: Download {{ install_file }} archive
+#  command: "perl {{ install_base }}/gdown.pl {{ install_url }} {{ install_base }}/{{ install_file }}"
+#  args:
+      #chdir: "{{ install_base }}" 
+#      creates: "{{ install_base }}/{{ install_file }}"
+#  become_user: "{{ oracle_user }}"
+
+#- name: Changing permissionissions of "{{ inspyrus_install }}"
+#  file: path="{{ inspyrus_install }}" owner={{ oracle_user }} mode=0770 recurse=yes
+#  become_user: "{{ oracle_user }}"
+  
+#- name: Extract {{ install_file }} into {{ install_base }}
+#  unarchive:
+#    src: "{{ install_base }}/{{ install_file }}"
+#    dest: "{{ install_base }}"
+#    remote_src: yes
+#  become_user: "{{ oracle_user }}"
+
+- name: fix install errors by updating date/time
+  command: "ntpdate time.apple.com" 
+      
+- name: Install pip
+  yum: name={{ item }} state=present
+  with_items: "{{packages_list_pip}}"
+  
+- name: run PIP to install pexpect
+  pip:
+    name: pexpect
+    umask: "0022"
+    
+- name: Disable SELinux
+  selinux: state=disabled
+  
+- name: Disable Firewall Deamon (firewalld)
+  service: name=firewalld state=stopped enabled=no
+  
+- name: Change kernel parameters
+  sysctl: name="{{ item.key }}" value="{{ item.value }}" state=present
+  with_dict: "{{kernel_params}}"
+  
+#- name: Install pip
+#  become: yes
+#  yum: name={{ item }} state=present
+#  with_items: "{{packages_list_pip}}"
+# ==> Create user and groups
+#- name: Create groups
+#  group: 
+#    name: "{{ oracle_group }}" 
+#    state: present
+#- name: Create user
+#  user: 
+#    name: "{{ oracle_user }}"
+#    groups: "{{ oracle_group }}"
+#    password: "{{ oracle_os_user_pass }}"
+  
+# ==> Add open file and process limits for oracle user
+#- name: Add soft limit number of open files
+#  lineinfile: dest=/etc/security/limits.conf line='{{ oracle_user }} soft  nofile  {{ soft_no_file }}'
+
+#- name: Add hard limit for number of open files
+#  lineinfile: dest=/etc/security/limits.conf line='{{ oracle_user }} hard  nofile  {{ hard_no_file }}'
+
+#- name: Add soft limit for number of processes
+#  lineinfile: dest=/etc/security/limits.conf line='{{ oracle_user }} soft  nproc   {{ soft_nproc }}'
+
+#- name: Add hard limit for number of processes
+#  lineinfile: dest=/etc/security/limits.conf line='{{ oracle_user }} hard  nproc   {{ hard_nproc }}'
+
+#- name: Create a shell profile with file and process limits for oracle user
+#  template: src=oracle-limits.sh dest=/etc/profile.d/
+  #become: yes
+  
+#- name: Changing permission of "{{ oracle_base }}"
+#  file: path="{{ oracle_base }}" owner={{ oracle_user }} group={{ oracle_group }} mode=0777 recurse=yes
+#  become: yes

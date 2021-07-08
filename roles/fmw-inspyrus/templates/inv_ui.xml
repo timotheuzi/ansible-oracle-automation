@@ -1,0 +1,36 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<javaui-config>
+<osb_host_port>http://{{ admin_server_hostname }}:{{ osb_port }}</osb_host_port>
+<soa_host_port>http://{{ admin_server_hostname }}:{{ soa_port }}</soa_host_port>
+<wcm_host_port>http://{{ admin_server_hostname }}:{{ iui_port }}</wcm_host_port>
+<loginLogoPath>http://{{ admin_server_hostname }}:{{ iui_port }}/logos/</loginLogoPath>
+<!--<analytics_host_port>http://{{ admin_server_hostname }}/QlikView/index.htm</analytics_host_port>-->
+<analytics_host_port>http://127.0.0.1/</analytics_host_port>
+
+<baseEntityId>{{ entity_id }}</baseEntityId>
+<dbFileUploadPath>/mnt/db_samba/</dbFileUploadPath>
+<soa_jms_port>t3://{{ admin_server_hostname }}:8001</soa_jms_port>
+<enablePagination>Y</enablePagination>
+<serviceTimeout>10000</serviceTimeout>
+<configui_console_port>http://{{ admin_server_hostname }}:7001/console</configui_console_port>
+<configui_inspy_port>http://{{ admin_server_hostname }}:7011/Inspyrus</configui_inspy_port>
+<sp_data_service_port>http://{{ admin_server_hostname }}:7011/SupplierPortalDataService/rest/SupplierService</sp_data_service_port>
+<supplierPortal_host_port>http://sbx.supplier-central.com/SupplierCentral</supplierPortal_host_port>
+<supplierPortalUserAccess>AD</supplierPortalUserAccess>
+
+<inspy_ap_db_user>inspy_ap</inspy_ap_db_user>
+<inspy_ap_db_password>{{ datasource_password }}</inspy_ap_db_password>
+<inspy_ap_db_host>{{ dbserver_name }}</inspy_ap_db_host>
+<inspy_ap_db_port>{{ dbserver_port }}</inspy_ap_db_port>
+<inspy_ap_db_connect_data>SID</inspy_ap_db_connect_data>
+<inspy_ap_db_connect_name>{{ dbserver_service }}</inspy_ap_db_connect_name>
+<import_invoices_excel_version>1.0</import_invoices_excel_version>
+<max_export_file_size_in_mb>50</max_export_file_size_in_mb>
+
+<smtp_user_name>{{ emserver_user }}</smtp_user_name>
+<smtp_password>{{ smtp_passwd }}</smtp_password>
+<smtp_host_name>{{ emserver_name }}</smtp_host_name>
+<smtp_port>{{ emserver_smtp_port }}</smtp_port>
+<smtp_server_security>NONE</smtp_server_security>
+</javaui-config>
+ 

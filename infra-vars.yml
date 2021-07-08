@@ -1,0 +1,87 @@
+# Oracle os user and group
+oracle_user: oracle #'oracle'
+oracle_group: 'oracle'
+# Software and configuration main directory
+oracle_base: '{{ root_base }}/oracle'
+vm_ip: '192.168.0.19'
+# JDK installer and target folder
+jdk_installation_archive: 'jdk-7u80-linux-x64.tar.gz'
+jdk_folder: '{{ oracle_base }}/jdk'
+
+# fmw installer
+mw_installer: 'wls1036_generic.jar'
+
+# database settings for repository
+dbserver_name: '192.168.0.38'
+dbserver_port: '1521'
+dbserver_sid: 'xe'
+dbserver_service: 'xe'
+repository_prefix: 'testing'
+dbserver_tblspace: '+DATA'
+OFR_TS: '{{ dbserver_tblspace }}'
+INSPY_AP_TS: '{{ dbserver_tblspace }}'
+inspy_ap_TEMP: '{{ dbserver_tblspace }}'
+INSPY_SC_TS: '{{ dbserver_tblspace }}'
+INSPY_SC_TEMP: '{{ dbserver_tblspace }}'
+
+
+# email server 
+emserver_name: '192.168.0.38'
+emserver_smtp_port: '25'
+emserver_imap_port: '143'
+emserver_imap_2_port: '993'
+emserver_user: 'timo@localhost.testing'
+
+# Domain information
+domain_name: 'base_domain'
+wls_user: 'weblogic'
+
+# Nodemanager and server settings
+node_manager_listen_port: '5556'
+node_manager_listen_address: 'localhost'
+admin_server_hostname: 'localhost.localdomain'
+admin_server_port: '7001'
+managed_server_name: 'localhost.localdomain'
+managed_server_port: '7003'
+soa_port: '8001'
+ucm_port: '16200'
+iui_port: '7011'
+osb_port: '8011'
+
+#wallet and response file information
+wallet_folder: '{{ oracle_base }}/wallet'
+response_location: '{{mw_installer_folder}}/rcuResponseFile.properties'
+
+#inspyrus install information
+install_url: 'https://drive.google.com/file/d/1zsHXHFaGZt98oCcTeUV1FZhNN5_W59Hu/view?usp=sharing' #main inspyrus download
+#install_url: 'https://drive.google.com/file/d/16uB8F0HeidYSoE3MByKfDZRB0JRgTMES/view?usp=sharing' #this is test.tar
+install_file: 'test.tar'
+install_base: '{{ root_base }}/install_media'
+inspyrus_install: '{{ install_base }}/InspyrusSoftware'
+ant_home: '{{ oracle_base }}/Middleware_Home/modules/org.apache.ant_1.7.1'
+inspy_capture: '{{inspyrus_install}}/InspyrusInstaller/Full/install/11117_Capture'
+inspy_administration: '{{inspyrus_install}}/InspyrusInstaller/Full/Deployment/InspyrusAdministration'
+inspy_deployment: '{{inspyrus_install}}/InspyrusInstaller/Full/Deployment'
+env_path: '/usr/local/bin:/usr/bin:/usr/local/sbin:/usr/sbin:/home/oracle/.local/bin:/home/oracle/bin'
+entity_id: '2'
+oracle_db_client: "{{ oracle_base }}/database_client" 
+oracle_db_client_home: "{{ oracle_db_client }}/product/12.1.0/client_1/bin"
+ld_library_path: "{{ oracle_db_client }}/product/12.1.0/client_1/lib"
+
+# Common paths and names
+root_base: '/u01'
+domain_user_projects: '{{ middleware_home }}/user_projects/domains/{{ domain_name }}'
+middleware_home: '{{ oracle_base }}/Middleware_Home'
+middleware_common_home: '{{ middleware_home }}/oracle_common'
+domains_home: '{{ oracle_base }}/config/Domains'
+applications_home: '{{ oracle_base }}/config/applications'
+mw_installer_folder: '{{ inspyrus_install }}/WLS'
+domain_home: '{{ domains_home }}/{{ domain_name }}'
+nodemanager_home: '{{ weblogic_home }}/common/nodemanager'
+weblogic_home: '{{ middleware_home }}/wlserver_10.3'
+nodemanager_username: 'weblogic'
+weblogic_admin: 'weblogic'
+admin_server_name: 'AdminServer'
+server_hostname: 'localhost'
+email_from_account: info@tekstream.com
+email_to_account: tim.haggerty@tekstream.com

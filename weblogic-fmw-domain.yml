@@ -1,0 +1,39 @@
+---
+- name: Configure RHEL 7 with WebLogic domain
+  hosts: localhost
+  vars_files:
+    # User defined variables for infrastructure
+    - infra-vars.yml
+    - secrets.yml
+  roles:
+    - role: linux-wls
+    - role: linux-jdk
+    - role: fmw-software
+      become_user: "{{oracle_user}}"     
+    - role: fmw-domain
+      become_user: "{{oracle_user}}"
+    - role: fmw-patch
+      become_user: "{{oracle_user}}"
+    - role: fmw-database
+      become_user: "{{oracle_user}}"
+    - role: fmw-nodemanager
+      become_user: "{{oracle_user}}"
+    - role: fmw-wlst
+      become_user: "{{oracle_user}}"
+    - role: fmw-inspyrus
+      become_user: "{{oracle_user}}"
+  become: yes
+  environment:
+    JAVA_HOME: "{{ jdk_folder }}"
+    ANT_HOME: "{{ ant_home }}"
+    PATH: "{{ env_path }}/bin:{{ ant_home }}/bin:{{ ant_home }}/lib" 
+  #become_user: "{{oracle_user}}"
+  pre_tasks:
+   #remote_user: "{{oracle_user}}"
+   # become: yes
+   # become_user: "{{oracle_user}}"
+   # become_method: sudo
+    # ==> Fix hosts file. Remove hostname from local loop. A workaround for vagrant
+    # adding hostname to local loop
+    #- name: fix host file 127.0.0.1 entry
+    #  lineinfile: dest=/etc/hosts regexp='^127\.0\.0\.1' line='127.0.0.1 localhost localhost.localdomain localhost4 localhost4.localdomain4' owner=root group=root mode=0644

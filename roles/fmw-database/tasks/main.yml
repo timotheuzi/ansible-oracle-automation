@@ -1,0 +1,95 @@
+################################################################################
+# ==> Tasks for install Oracle Fussion Middleware software
+# ==> to a RHEL 7 system. Supports version 10.3.6
+################################################################################
+# ==> Install Database client and run Inspyrus scripts
+
+- name: Clean orainventory path
+  file:
+    path: "{{ oracle_base }}/oraInventory"
+    state: absent
+
+- name: Create orainventory directory
+  file: state=directory path="{{ oracle_base }}/oraInventory" owner={{ oracle_user }} 
+
+- name: Changing permission of "{{ install_base }}"
+  file: path="{{ install_base }}" owner={{ oracle_user }} group={{ oracle_group }} mode=0777 recurse=yes
+
+- name: Run ant to install db client
+  command: "ant install_db_client"
+  args:  
+    chdir: "{{ inspy_capture }}"    
+
+- name: Run orainstRoot
+  become: yes
+  command: "./orainstRoot.sh"
+  async: 60
+  poll: 1  
+  args:  
+    chdir: "{{ oracle_base }}/oraInventory"   
+  become: yes
+  become_method: su  
+  become_user: root    
+  
+- name: Copy create_users.sql file for silent installation
+  template: src=create_users.sql dest="{{ oracle_base }}/oraInventory" owner={{ oracle_user }} #group={{ oracle_group }}
+  become: yes
+  
+- name: Copy create_acl.sql file for silent installation
+  template: src=create_acl.sql dest="{{ oracle_base }}/oraInventory" owner={{ oracle_user }} #group={{ oracle_group }}
+  become: yes
+
+- name: Copy grants.sql file for silent installation
+  template: src=grants.sql dest="{{ oracle_base }}/oraInventory" owner={{ oracle_user }} #group={{ oracle_group }}
+  become: yes
+  ###new branch test!
+  #sqlplus "SYS/Password@(DESCRIPTION=(ADDRESS=(PROTOCOL=TCP)(HOST=192.168.0.3)(PORT=1521))(CONNECT_DATA=(SID=ansible))) as SYSDBA"
+#- name: Run sqlplus to execute .sql file
+#  expect:
+#  args:
+#    chdir: "{{ oracle_base }}/oraInventory"
+#    command: "sqlplus 'SYS/{{ sysdba_passwd }} @(DESCRIPTION=(ADDRESS_LIST=(ADDRESS=(PROTOCOL=TCP)(HOST={{ dbserver_name }})(PORT={{ dbserver_port }})))(CONNECT_DATA=(SID={{ dbserver_sid }})(SERVER=dedicated)))as SYSDBA'"
+#    responses:
+#      "SQL>": "@create_users"
+#      "SQL>": "@grants"
+#      "SQL>": "exit"
+#  environment:
+    #ORACLE_DB_CLIENT_HOME: "{{ oracle_db_client }}"
+    #ORACLE_BASE: "{{ oracle_db_client }}" 
+#    ORACLE_HOME: "{{ oracle_db_client }}/product/12.1.0/client_1"
+#    LD_LIBRARY_PATH: "{{ ld_library_path }}"
+#    PATH: "{{ oracle_db_client_home }}" 
+
+- name: Run sqlplus to execute create_users.sql file
+  command: "sqlplus 'SYS/{{ sysdba_passwd }} @(DESCRIPTION=(ADDRESS_LIST=(ADDRESS=(PROTOCOL=TCP)(HOST={{ dbserver_name }})
+    (PORT={{ dbserver_port }})))(CONNECT_DATA=(SID={{ dbserver_sid }})(SERVER=dedicated))) as SYSDBA' @create_users "
+  args:
+    chdir: "{{ oracle_base }}/oraInventory"
+  environment:
+    ORACLE_HOME: "{{ oracle_db_client }}/product/12.1.0/client_1"
+    LD_LIBRARY_PATH: "{{ ld_library_path }}"
+    PATH: "{{ oracle_db_client_home }}" 
+
+- name: Run sqlplus to execute create_acl.sql file
+  command: "sqlplus 'SYS/{{ sysdba_passwd }} @(DESCRIPTION=(ADDRESS_LIST=(ADDRESS=(PROTOCOL=TCP)(HOST={{ dbserver_name }})
+    (PORT={{ dbserver_port }})))(CONNECT_DATA=(SID={{ dbserver_sid }})(SERVER=dedicated))) as SYSDBA' @create_acl "
+  args:
+    chdir: "{{ oracle_base }}/oraInventory"
+  environment:
+    ORACLE_HOME: "{{ oracle_db_client }}/product/12.1.0/client_1"
+    LD_LIBRARY_PATH: "{{ ld_library_path }}"
+    PATH: "{{ oracle_db_client_home }}" 
+
+- name: Run sqlplus to execute grants.sql file
+  command: "sqlplus 'SYS/{{ sysdba_passwd }} @(DESCRIPTION=(ADDRESS_LIST=(ADDRESS=(PROTOCOL=TCP)(HOST={{ dbserver_name }})
+    (PORT={{ dbserver_port }})))(CONNECT_DATA=(SID={{ dbserver_sid }})(SERVER=dedicated))) as SYSDBA' @grants "
+  args:
+    chdir: "{{ oracle_base }}/oraInventory"
+  environment:
+    ORACLE_HOME: "{{ oracle_db_client }}/product/12.1.0/client_1"
+    LD_LIBRARY_PATH: "{{ ld_library_path }}"
+    PATH: "{{ oracle_db_client_home }}" 
+ 
+- name: Changing permission of "{{ oracle_base }}"
+  file: path="{{ oracle_base }}" owner={{ oracle_user }} mode=0777 recurse=yes
+ 

@@ -1,0 +1,89 @@
+# ==> Ansible Role for start Admin Server for the first time in a configured
+# ==> WebLogic 10.3.6 Domain
+#- name: Create security folder on Admin Server
+#  file: state=directory path={{ domains_home }}/{{ domain_name }}/servers/{{ admin_server_name }}/security owner={{ oracle_user }} group={{ oracle_group }}
+#  tags:
+#    - start-admin-server
+#- name: Create boot.properties file
+#  template: src=boot.properties dest={{ domains_home }}/{{ domain_name }}/servers/{{ admin_server_name }}/security/ owner={{ oracle_user }} group={{ oracle_group }}
+#  tags:
+#    - start-admin-server
+#- name: Copy Admin Server start-up script
+#  template: src=start-admin-server.py dest={{ mw_installer_folder }} owner={{ oracle_user }} group={{ oracle_group }} mode=0755
+#  tags:
+#    - start-admin-server
+#- name: Execute start Admin Server script
+#  shell: "{{ weblogic_home }}/common/bin/wlst.sh {{ mw_installer_folder }}/start-admin-server.py"
+#  sudo_user: '{{ oracle_user }}'
+#  tags:
+#    - start-admin-server
+#- name: Run startWeblogic with async
+#  become: yes #nohup ./startWeblogic.sh 0<&- &>/dev/null &
+#  command: ./startWebLogic.sh
+#  async: 9999999999999999999999999999999999999999999
+#  poll: 0  
+#  args:
+#    chdir: "{{ oracle_base }}/Middleware_Home/user_projects/domains/{{ domain_name }}/bin"  
+#  environment:
+#    JAVA_HOME: "{{ jdk_folder }}"
+#    ANT_HOME: "{{ ant_home }}"
+#    PATH: "{{ env_path }}:{{ jdk_folder }}/bin:{{ ant_home }}/bin:{{ ant_home }}/lib" 
+- name: Run ant to start adminServer
+  become: yes 
+  become_user: oracle 
+  command: "ant startAdminServer"
+  async: 99999999999999999999999999999999999999999
+  poll: 0  
+  args:
+    chdir: "{{ inspy_capture }}"  
+  environment:
+    JAVA_HOME: "{{ jdk_folder }}"
+    ANT_HOME: "{{ ant_home }}"
+    PATH: "{{ env_path }}/bin:{{ ant_home }}/bin:{{ ant_home }}/lib"
+- name: Run ant to start all servers
+  become: yes 
+  become_user: oracle 
+  command: "ant startAllServers"
+  async: 99999999999999999999999999999999999999999
+  poll: 0  
+  args:
+    chdir: "{{ inspy_capture }}"  
+  environment:
+    JAVA_HOME: "{{ jdk_folder }}"
+    ANT_HOME: "{{ ant_home }}"
+    PATH: "{{ env_path }}/bin:{{ ant_home }}/bin:{{ ant_home }}/lib"
+- name: Wait for Admin Server to startup
+  wait_for: port={{ admin_server_port }} delay=2 timeout=300
+
+
+
+
+
+#- name: Run startWeblogic with async
+#  become: yes #nohup ./startWeblogic.sh 0<&- &>/dev/null &
+#  command: ./startWebLogic.sh
+#  async: 1200
+#  poll: 0  
+#  args:
+#    chdir: "{{ oracle_base }}/Middleware_Home/user_projects/domains/{{ domain_name }}/bin"  
+#  environment:
+#    JAVA_HOME: "{{ jdk_folder }}"
+#    ANT_HOME: "{{ ant_home }}"
+#    PATH: "{{ env_path }}:{{ jdk_folder }}/bin:{{ ant_home }}/bin:{{ ant_home }}/lib" 
+#- name: Wait for Admin Server to startup
+#  wait_for: port={{ admin_server_port }} delay=2 timeout=300
+#- name: Changing permissionissions of "{{ oracle_base }}"
+#  become: yes
+#  file: path="{{ oracle_base }}" owner={{ oracle_user }} group={{ oracle_group }} mode=0770 recurse=yes
+#- name: Changing permissionissions of "{{ inspyrus_install }}"
+#  become: yes
+#  file: path="{{ inspyrus_install }}" owner={{ oracle_user }} group={{ oracle_group }} mode=0770 recurse=yes
+#- name: Run ant to start adminServer
+#  become: yes
+#  command: "ant startAdminServer"
+#  args:
+#    chdir: "{{ inspy_capture }}"  
+#  environment:
+#    JAVA_HOME: "{{ jdk_folder }}"
+#    ANT_HOME: "{{ ant_home }}"
+#    PATH: "{{ env_path }}/bin:{{ ant_home }}/bin:{{ ant_home }}/lib"

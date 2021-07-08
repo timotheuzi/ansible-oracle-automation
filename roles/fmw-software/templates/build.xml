@@ -1,0 +1,1068 @@
+<?xml version="1.0"?>
+
+<project name="silent-install" basedir="." default="silent_install">
+<!--The following TASKDEF is needed to include the ANT-CONTRIB libraries -->
+<!--<taskdef resource="net/sf/antcontrib/antlib.xml"/> -->
+
+	<property environment="env"/>
+	<property file="silent-install.properties"/> 
+
+	<taskdef resource="net/sf/antcontrib/antlib.xml">
+	  <classpath>
+		<pathelement location="${user.dir}/ant-contrib.jar"/>
+	  </classpath>
+	</taskdef>
+	
+	<taskdef resource="net/sf/antcontrib/antcontrib.properties">
+	  <classpath>
+		<pathelement location="${user.dir}/ant-contrib.jar"/>
+	  </classpath>
+	</taskdef>
+    
+  <var name="test.url" unset="true"/>
+	
+   <condition property="isUnix">
+      <os family="unix"/>
+   </condition>
+
+<if>
+       <equals arg1="${isUnix}" arg2="true"/>
+	<then>
+		<property name="os_family" value="unix" />
+	</then>
+	<else>
+		<property name="os_family" value="windows" />
+	</else>
+</if>
+
+  <target name="create_silent_install_files">
+	<input     message="Please enter the Admin Server user name:" addproperty="adminUser"/>
+	<input     message="Please enter the Admin Server password:" addproperty="adminPassword"/>
+    <echoxml file="${TEMPORARY_DIRECTORY}/silent-jrockit.xml">
+	<domain-template-descriptor>
+	<input-fields>
+		<!-- Installation directory -->
+		<data-value name="USER_INSTALL_DIR" value="${JAVA_HOME}"/>
+		<!-- Optional installation of Demos and Samples -->
+		<data-value name="INSTALL_DEMOS_AND_SAMPLES" value="false"/>
+		<!-- Optional installation of Source Code -->
+		<data-value name="INSTALL_SOURCE_CODE" value="false"/>
+		<!-- Optional installation of Public JRE -->
+		<data-value name="INSTALL_PUBLIC_JRE" value="false"/>
+	</input-fields>
+	</domain-template-descriptor>
+     </echoxml>
+  
+     <echoxml file="${TEMPORARY_DIRECTORY}/silent-weblogic.xml">
+	<bea-installer>
+		<input-fields>
+			<!-- BEAHOME: The full path for the middleware home directory. -->
+			<data-value name="BEAHOME" value="${MIDDLEWARE_HOME}"/>
+			<!-- WLS_INSTALL_DIR: The full path for the directory where to install WebLogic Server. -->
+			<data-value name="WLS_INSTALL_DIR" value="${WEBLOGIC_HOME}"/>
+			<!-- OCP_INSTALL_DIR: The full path for the directory where to install Coherence. -->
+			<!--<data-value name="OCP_INSTALL_DIR" value="'${COHERENCE_HOME}'"/>-->
+			<!-- COMPONENT_PATHS: Specify the components and subcomponents to install. -->
+			<data-value name="COMPONENT_PATHS" value="WebLogic Server/Core Application Server|WebLogic Server/Administration Console|WebLogic Server/Configuration Wizard and Upgrade Framework|WebLogic Server/Web 2.0 HTTP Pub-Sub Server|WebLogic Server/WebLogic JDBC Drivers|WebLogic Server/Third Party JDBC Drivers|WebLogic Server/WebLogic Server Clients|WebLogic Server/WebLogic Web Server Plugins|WebLogic Server/UDDI and Xquery Support|WebLogic Server/Evaluation Database"/>
+			<!-- INSTALL_NODE_MANAGER_SERVICE: Install Node Manager as a Windows service. -->
+			<data-value name="INSTALL_NODE_MANAGER_SERVICE" value="no"/>
+			<!-- LOCAL_JVMS: Select JVMs which are already installed. -->
+			<data-value name="LOCAL_JVMS" value="${JAVA_HOME}"/>
+			<!-- BEA_BUNDLED_JVMS: Option to select BEA bundled JVMS -->
+			<!--<data-value name="BEA_BUNDLED_JVMS" value=""/>-->
+		</input-fields>
+      </bea-installer>
+     </echoxml>
+
+     <echo file="${TEMPORARY_DIRECTORY}/silent-service-bus.txt">
+	[ENGINE]
+
+	#DO NOT CHANGE THIS.
+	Response File Version=1.0.0.0.0
+
+	[GENERIC]
+
+	#Set this to true if you wish to specify a directory where latest updates are downloaded. This option would use the software updates from the specified directory
+	SPECIFY_DOWNLOAD_LOCATION=false
+
+	#
+	SKIP_SOFTWARE_UPDATES=true
+
+	#If the Software updates are already downloaded and available on your local system, then specify the path to the directory where these patches are available and set SPECIFY_DOWNLOAD_LOCATION to true
+	SOFTWARE_UPDATES_DOWNLOAD_LOCATION=
+
+	#Write the name of the Oracle Home directory. The Oracle Home directory name may only contain alphanumeric , hyphen (-) , dot (.) and underscore (_) characters, and it must begin with an alphanumeric character.
+	ORACLE_HOME=${Oracle_OSB1_HOME}
+
+	#Write the complete path to a valid Middleware Home.
+	MIDDLEWARE_HOME=${MIDDLEWARE_HOME}
+
+	#Set this to true if typical installation must be done. If this is set to true then wariable "CUSTOM TYPE" must be set to false as the variables are mutually exclusive
+	TYPICAL TYPE=false
+
+	#Set this to true if custom installation must be done, all other required variables need to be provided. If this is set to true then variable "TYPICAL TYPE" must be set to false as the variables are mutually exclusive.
+	CUSTOM TYPE=true
+
+	#Set this to true if component Oracle Service Bus Examples must be installed. This input will be needed only in the case of custom installation
+	Oracle Service Bus Examples=false
+
+	#Set this to true if component Oracle Service Bus IDE must be installed. This input will be needed only in the case of custom installation
+	Oracle Service Bus IDE=false
+
+	#Give the complete path to a valid WebLogic Server Home for the corresponding Middleware Home entered.
+	WL_HOME=${WEBLOGIC_HOME}
+
+	#Give the complete path to a valid OEPE Home for the corresponding Middleware Home entered. This input will be needed in both typical and custom installations. But in case of custom installation, Oracle Service Bus IDE must be set to true.
+	#OEPE_HOME=/tmp
+
+	[SYSTEM]
+
+	[APPLICATIONS]
+
+	[RELATIONSHIPS]
+     </echo>
+
+     <echo file="${TEMPORARY_DIRECTORY}/silent-soa.txt">
+	[ENGINE]
+
+	#DO NOT CHANGE THIS.
+	Response File Version=1.0.0.0.0
+
+	[GENERIC]
+
+	#Set this to true if you wish to specify a directory where latest updates are downloaded. This option would use the software updates from the specified directory
+	SPECIFY_DOWNLOAD_LOCATION=false
+
+	#Set this to true to skip the Software updates
+	SKIP_SOFTWARE_UPDATES=true
+
+	#If the Software updates are already downloaded and available on your local system, then specify the path to the directory where these patches are available and set SPECIFY_DOWNLOAD_LOCATION to true
+	SOFTWARE_UPDATES_DOWNLOAD_LOCATION=
+
+	#Provide the Oracle Home location. The location has to be the immediate child under the specified Middleware Home location. The Oracle Home directory name may only contain alphanumeric , hyphen (-) , dot (.) and underscore (_) characters, and it must begin with an alphanumeric character. The total length has to be less than or equal to 128 characters. The location has to be an empty directory or a valid SOA Oracle Home.
+	ORACLE_HOME=${Oracle_SOA1_HOME}
+
+	#Provide existing Middleware Home location.
+	MIDDLEWARE_HOME=${MIDDLEWARE_HOME}
+
+	#Application Server choices are WLS, WAS
+	APPSERVER_TYPE=WLS
+
+	#Provide the Application Server Location.
+	APPSERVER_LOCATION=${MIDDLEWARE_HOME}
+
+
+	[SYSTEM]
+
+
+	[APPLICATIONS]
+
+
+	[RELATIONSHIPS]
+
+     </echo>
+     
+     <echo file="${TEMPORARY_DIRECTORY}/silent-ucm.txt">     
+	[ENGINE]
+
+	#DO NOT CHANGE THIS.
+	Response File Version=1.0.0.0.0
+
+	[GENERIC]
+
+	#Set this to true if you wish to specify a directory where latest updates are downloaded. This option would use the software updates from the specified directory
+	SPECIFY_DOWNLOAD_LOCATION=false
+
+	#Set this to true to skip the Software updates
+	SKIP_SOFTWARE_UPDATES=true
+
+	#If the Software updates are already downloaded and available on your local system, then specify the path to the directory where these patches are available and set SPECIFY_DOWNLOAD_LOCATION to true
+	SOFTWARE_UPDATES_DOWNLOAD_LOCATION=
+
+	#Provide the Oracle Home location. The location has to be the immediate child under the specified Middleware Home location. The Oracle Home directory name may only contain alphanumeric , hyphen (-) , dot (.) and underscore (_) characters, and it must begin with an alphanumeric character. The total length has to be less than or equal to 128 characters. The location has to be an empty directory or a valid WebCenter Portal Oracle Home.
+	ORACLE_HOME=${Oracle_UCM1_HOME}
+
+	#Provide existing Middleware Home location.
+	MIDDLEWARE_HOME=${MIDDLEWARE_HOME}
+
+	#Provide true/false value depends on the given Middleware Home location is Valid or Not.
+	IS_VALID_MIDDLEWARE_HOME=true
+
+	#Application Server choices are WLS, WAS
+	APPSERVER_TYPE=WLS
+
+	#Provide the Application Server Location.
+	APPSERVER_LOCATION=${MIDDLEWARE_HOME}
+
+
+	[SYSTEM]
+
+
+	[APPLICATIONS]
+
+
+	[RELATIONSHIPS]
+
+    </echo>
+	
+	<echo file="${TEMPORARY_DIRECTORY}/silent-idm.txt">
+	[ENGINE]
+
+	#DO NOT CHANGE THIS.
+	Response File Version=1.0.0.0.0
+
+	[GENERIC]
+
+	#Set this to true if you wish to specify a directory where latest updates are downloaded. This option would use the software updates from the specified directory
+	SPECIFY_DOWNLOAD_LOCATION=false
+
+	#
+	SKIP_SOFTWARE_UPDATES=true
+
+	#If the Software updates are already downloaded and available on your local system, then specify the path to the directory where these patches are available and set SPECIFY_DOWNLOAD_LOCATION to true
+	SOFTWARE_UPDATES_DOWNLOAD_LOCATION=
+
+	#Set this to true if installation and configuration need to be done, all other required variables need to be provided. Variable "INSTALL AND CONFIGURE LATER TYPE" must be set to false if this is set to true as the variables are mutually exclusive
+	INSTALL AND CONFIGURE TYPE=true
+
+	#Set this to true if only Software only installation need to be done. If this is set to true then variable "INSTALL AND CONFIGURE TYPE" must be set to false, since the variables are mutually exclusive.
+	INSTALL AND CONFIGURE LATER TYPE=false
+
+	#Provide true to create a new weblogic domain. WebLogic Server must already be installed.
+	CREATE_NEW_DOMAIN=false
+
+	#Provide true to extend domain. WebLogic Server must already be installed and the domain must be up and running.
+	USE_EXISTING_DOMAIN=true
+
+	#Provide true to configure components without domain.
+	NO_DOMAIN=false
+
+	#Provide true to expand the clusters in domain. WebLogic Server must already be installed and the domain must be up and running.
+	EXTEND_CLUSTER=false
+
+	#Domain name may only contain alphanumeric characters or the underscore (_) or hyphen (-) characters.
+	DOMAIN_NAME=
+
+	#Provide the User Name for WebLogic Domain. The value may only contain alphanumeric characters, or the underscore (_) or hyphen (-) characters.
+	DOMAIN_ADMINISTRATOR_USERNAME=${adminUser}
+
+	#Provide the password for WebLogic Domain. Valid passwords are 8 to 30 characters long, must begin with an alphabetic character, use only alphanumeric, underscore (_), dollar ($) or pound (#) characters and include at least one number.
+	DOMAIN_ADMINISTRATION_PASSWORD=${adminPassword}
+
+	#Confirm the WebLogic Domain password.
+	ADMINISTRATOR_PASSWORD_CONFIRM=${adminPassword}
+
+	#Provide the localhost name for Create Domain and machine name on which domain is up and running for Extend Domain and Expand Cluster.
+	DOMAIN_HOST_NAME=${ADMIN_HOST}
+
+	#Provide the port in which domain is up and running. Required for Extend Domain and Expand Cluster.
+	DOMAIN_PORT_NO=7001
+
+	#Write the complete path to a valid Middleware Home.
+	AS_HOME_LOCATION=${MIDDLEWARE_HOME}
+
+	#Give the complete path to a valid WebLogic Server Home.
+	WL_HOME=${WEBLOGIC_HOME}
+
+	#Give the name of the Oracle Home directory. The Oracle Home directory name may only contain alphanumeric , hyphen (-) , dot (.) and underscore (_) characters, and it must begin with an alphanumeric character.
+	ORACLE_HOME=${Oracle_IDM1_HOME}
+
+	#Give the complete path for an Oracle Instance directory to be created. This is the location where the software configuration files and runtime processes will reside.
+	INSTANCE_HOME=${MIDDLEWARE_HOME}/${IDM_INSTANCE_NAME}
+
+	#Give a name for Oracle Instance corresponding to the Instance Home. The Oracle Instance name may only contain alphanumeric and underscore (_) characters, it must begin with an alphabetic (a-z or A-Z) character, and must be from 4 to 30 characters in length.
+	INSTANCE_NAME=${IDM_INSTANCE_NAME}
+
+	#Provide the My Oracle Support Username. If you wish to ignore Oracle Configuration Manager configuration provide empty string for user name.
+	MYORACLESUPPORT_USERNAME=
+
+	#Provide the My Oracle Support Password
+	MYORACLESUPPORT_PASSWORD=
+
+	#Set this to true if you wish to decline the security updates. Setting this to true and providing empty string for My Oracle Support username will ignore the Oracle Configuration Manager configuration
+	DECLINE_SECURITY_UPDATES=true
+
+	#Set this to true if My Oracle Support Password is specified
+	SECURITY_UPDATES_VIA_MYORACLESUPPORT=false
+
+	#Provide the Proxy Host
+	PROXY_HOST=
+
+	#Provide the Proxy Port
+	PROXY_PORT=
+
+	#Provide the Proxy Username
+	PROXY_USER=
+
+	#Provide the Proxy Password
+	PROXY_PWD=
+
+	#Type String (URL format) Indicates the OCM Repeater URL which should be of the format [scheme[Http/Https]]://[repeater host]:[repeater port]
+	COLLECTOR_SUPPORTHUB_URL=
+
+	#Give OID if Oracle Internet Directory is selected for configuration.
+	LIST_OF_COMPONENTS_FOR_SCHEMAS=
+
+	#Set this to true if you want the configuration wizard to assign the ports automatically.
+	AUTOMATIC_PORT_DETECT=true
+
+	#Give the location for the file containing the list of static ports if you manually want to assign ports.
+	STATICPORT INI FILE LOCATION=
+
+	#Provide a password for a new account to connect to the Oracle Virtual Directory administrative service, cn=orcladmin. Use 5-30 characters. Use only alphanumerics, underscore (_), dollar ($), or pound (#). At least one number is required.
+	OVD_ADMIN_PASSWORD=${OVD_ADMIN_PASSWORD}
+
+	#Confirm the password of Oracle Virtual Directory administrative service.
+	CONFIRM_OVD_ADMIN_PASSWORD=${OVD_ADMIN_PASSWORD}
+
+	#Provide the base, or the leftmost entry, of the virtual directory namespace that Oracle Virtual Directory will use to set its initial Access Control Lists (ACLs). For example, for the namespace dc=mycompany,dc=com, you would enter dc=com.
+	OVD_LDAPv3_NAME_SPACE=${OVD_LDAPv3_NAME_SPACE}
+
+	#Provide true to enable the HTTP Web Gateway to be protected by SSL. Oracle highly recommends that you use SSL/TLS for Oracle Virtual Directory's administrative gateway service. Disabling SSL/TLS  could result in your server administration traffic being monitored and even compromised.
+	IS_ADMIN_SERVER_OF_OVD_IN_SECURE_MODE=true
+
+	#Provide true for securing HTTP client connection information. Give true if HTTP Web Gateway is set to true.
+	IS_HTTP_WEB_GATEWAY_OF_OVD_SECURE=false
+
+	#Provide true for Oracle Virtual Directory to be configured.
+	IS_LDAP_CLIENT_LISTENER_FOR_OVD_SELECTED=false
+
+	#Oracle Virtual Directory includes an HTML-based gateway that provides DSML and XSLT-rendered directory reporting. Provide true to enable HTML-based gateway.
+	IS_HTTP_WEB_GATEWAY_OF_OVD_SELECTED=true
+
+	#Specify a new Administrator User Name to connect to the Oracle Virtual Directory administrative service, For example, for the Administrator User Name you would enter cn=orcladmin.
+	OVD_ADMIN=${OVD_ADMIN}
+
+
+	[SYSTEM]
+
+
+	[APPLICATIONS]
+
+	#Provide true if configuring in a clustered environment.
+	IS_CLUSTER_CONFIGURATION=false
+
+
+	[RELATIONSHIPS]
+
+	#Provide true to configure Oracle Internet Directory.
+	CONFIGURE_OID_COMPONENT=false
+
+	#Provide true to configure Oracle Directory Integration Platform.
+	CONFIGURE_DIP_COMPONENT=false
+
+	#Provide true to configure Oracle Virtual Directory.
+	CONFIGURE_OVD_COMPONENT=true
+
+	#Provide true to configure Oracle Identity Fedration.
+	CONFIGURE_OIF_COMPONENT=false
+
+	#Provide true to configure Oracle Directory Service Manager.
+	CONFIGURE_ODSM_COMPONENT=true
+
+	#Provide true to configure Enterprise Management.
+	CONFIGURE_EM_COMPONENT=false
+
+	#Provide true to configure federation components.
+	FEDERATION_COMPONENTS_FOR_CONFIGURE=false
+
+	#Provide true to configure management components.
+	MANAGEMENT_COMPONENTS_FOR_CONFIGURE=true
+
+	#Provide the list of components selected for configuration separated by colon. Example OID:OVD:DIP:ODSM
+	SELECTED_COMPONENTS_FOR_CONFIGURATION=OVD:ODSM:
+
+	</echo>
+    
+	<echo file="${TEMPORARY_DIRECTORY}/oraInst.loc">
+	inventory_loc=${ORACLE_INVENTORY_HOME}
+	inst_group=${ORACLE_INSTALL_GROUP}
+     </echo>
+  </target>
+  
+  <target name="create_db_silent_resp">
+	<echo file="${TEMPORARY_DIRECTORY}/silent-db-client.rsp">
+	oracle.install.responseFileVersion=/oracle/install/rspfmt_clientinstall_response_schema_v${ORACLE_DB_CLIENT_VERSION}
+	ORACLE_HOSTNAME=${ADMIN_HOST}
+	UNIX_GROUP_NAME=${ORACLE_INSTALL_GROUP}
+	INVENTORY_LOCATION=${ORACLE_INVENTORY_HOME}
+	SELECTED_LANGUAGES=en
+	ORACLE_HOME=${ORACLE_DB_CLIENT_HOME}/product/${ORACLE_DB_CLIENT_VERSION}/client_1
+	ORACLE_BASE=${ORACLE_DB_CLIENT_HOME}
+	oracle.install.client.installType=Administrator
+	oracle.install.client.customComponents=
+	oracle.install.client.schedulerAgentHostName=
+	oracle.install.client.schedulerAgentPortNumber=
+	</echo>
+  </target>
+
+  <target name="create_repository">
+	<echo file="passwordfile.txt">${SYS_PASSWORD}${line.separator}${SCHEMA_PASSWORD}</echo>	
+	<if>
+	    <equals arg1="${os_family}" arg2="unix"/>
+	    <then>
+		<echo file="create_repository">${SOFTWARE_DIRECTORY_RCU}/rcuHome/bin/rcu -silent -createRepository -databaseType ORACLE -connectString ${DATABASE_HOST}:${DATABASE_PORT}:${DATABASE_SID} -dbUser sys -dbRole SYSDBA -schemaPrefix ${SERVERS_SCHEMA_PREFIX} -useSamePasswordForAllSchemaUsers true -component SOAINFRA -component MDS -component ORASDPM -component CONTENTSERVER11 -component CAPTURE -f &lt; passwordfile.txt</echo>
+		<exec executable="/bin/bash">
+		   <arg value="create_repository"/>
+		</exec>
+		<delete file="create_repository"/>
+	    </then>
+	    <else>
+		<echo file="create_repository.bat">${SOFTWARE_DIRECTORY_RCU}/rcuHome/bin/rcu -silent -createRepository -databaseType ORACLE -connectString ${DATABASE_HOST}:${DATABASE_PORT}:${DATABASE_SID} -dbUser sys -dbRole SYSDBA -schemaPrefix ${SERVERS_SCHEMA_PREFIX} -useSamePasswordForAllSchemaUsers true -component SOAINFRA -component MDS -component ORASDPM -component CONTENTSERVER11 -component CAPTURE -f &lt; passwordfile.txt</echo>
+		<exec executable="create_repository.bat"/>
+		<delete file="create_repository.bat"/>
+  	    </else>
+	</if>
+	<delete file="passwordfile.txt"/>
+  </target>
+
+  <target name="drop_repository">
+	<echo file="passwordfile.txt">${SYS_PASSWORD}${line.separator}${SCHEMA_PASSWORD}</echo>
+	<if>
+	    <equals arg1="${os_family}" arg2="unix"/>
+	    <then>
+		<echo file="drop_repository">${SOFTWARE_DIRECTORY_RCU}/rcuHome/bin/rcu -silent -dropRepository -databaseType ORACLE -connectString ${DATABASE_HOST}:${DATABASE_PORT}:${DATABASE_SID} -dbUser sys -dbRole SYSDBA -schemaPrefix ${SERVERS_SCHEMA_PREFIX} -component SOAINFRA -component MDS -component ORASDPM -component CONTENTSERVER11 -component CAPTURE  -f &lt; passwordfile.txt</echo>
+		<echo>${user.dir}</echo>
+		<exec executable="/bin/bash">
+		   <arg value="drop_repository"/>
+		</exec>
+		<delete file="drop_repository"/>
+	    </then>
+	    <else>
+		<echo file="drop_repository.bat">${SOFTWARE_DIRECTORY_RCU}/rcuHome/bin/rcu -silent -dropRepository -databaseType ORACLE -connectString ${DATABASE_HOST}:${DATABASE_PORT}:${DATABASE_SID} -dbUser sys -dbRole SYSDBA -schemaPrefix ${SERVERS_SCHEMA_PREFIX} -component SOAINFRA -component MDS -component ORASDPM -component CONTENTSERVER11 -component CAPTURE  -f &lt; passwordfile.txt</echo>
+		<exec executable="drop_repository.bat"/>
+		<delete file="drop_repository.bat"/>
+  	    </else>
+	</if>
+	<delete file="passwordfile.txt"/>
+  </target>
+
+  <target name="install_jrockit">
+	<echo>INSTALLING JAVA VIRTUAL MACHINE</echo>
+	<exec executable="${SOFTWARE_DIRECTORY_JAVA}/${JVM_FILE_NAME}">
+	     <arg value="-mode=silent"/>
+	     <arg value="-silent_xml=${TEMPORARY_DIRECTORY}/silent-jrockit.xml"/>
+	     <arg value="-log=${TEMPORARY_DIRECTORY}/logs/jrockit-install.log"/>
+	 </exec>
+  </target>
+
+  <target name="install_weblogic">
+	<echo>INSTALLING WEBLOGIC SERVER</echo>
+	<java jar="${SOFTWARE_DIRECTORY_WEBLOGIC}/${WEBLOGIC_FILE_NAME}" fork="true" maxmemory="512m" jvm="${JAVA_HOME}/bin/java">
+	     <arg value="-mode=silent"/>
+	     <arg value="-silent_xml=${TEMPORARY_DIRECTORY}/silent-weblogic.xml"/>
+	     <arg value="-log	=${TEMPORARY_DIRECTORY}/logs/weblogic-install.log"/>
+	 </java>
+  </target>
+
+  <target name="install_soa">
+	<echo>INSTALLING SOA</echo>
+	<if>
+	    <equals arg1="${os_family}" arg2="unix"/>
+	    <then>
+		<echo file="install_soa">${SOFTWARE_DIRECTORY_SOA}/Disk1/runInstaller -silent -ignoreSysPrereqs -responsefile ${TEMPORARY_DIRECTORY}/silent-soa.txt -jreLoc ${JAVA_HOME} -invPtrLoc ${TEMPORARY_DIRECTORY}/oraInst.loc</echo>
+		<exec executable="/bin/bash">
+		   <arg value="install_soa"/>
+		</exec>
+		<!-- copy missing soa modules to modules and features directory-->
+		<antcall target="moveFilesToServer"/>
+		<delete file="install_soa"/>
+	    </then>
+	    <else>
+		<echo file="install_soa.bat">${SOFTWARE_DIRECTORY_SOA}/Disk1/setup.exe -silent -ignoreSysPrereqs -responsefile ${TEMPORARY_DIRECTORY}/silent-soa.txt -jreLoc ${JAVA_HOME}</echo>
+		<exec executable="install_soa.bat"/>
+		<delete file="install_soa.bat"/>
+  	    </else>
+	</if>
+  </target>
+
+  <target name="install_ucm">
+	<echo>INSTALLING UCM</echo>
+	<if>
+	    <equals arg1="${os_family}" arg2="unix"/>
+	    <then>
+		<echo file="install_ucm">${SOFTWARE_DIRECTORY_UCM}/Disk1/runInstaller -silent -ignoreSysPrereqs -responsefile ${TEMPORARY_DIRECTORY}/silent-ucm.txt -jreLoc ${JAVA_HOME} -invPtrLoc ${TEMPORARY_DIRECTORY}/oraInst.loc</echo>
+		<exec executable="/bin/bash">
+		   <arg value="install_ucm"/>
+		</exec>
+		<delete file="install_ucm"/>
+	    </then>
+	    <else>
+		<echo file="install_ucm.bat">${SOFTWARE_DIRECTORY_UCM}/Disk1/setup.exe -silent -ignoreSysPrereqs -responsefile ${TEMPORARY_DIRECTORY}/silent-ucm.txt -jreLoc ${JAVA_HOME}</echo>
+		<exec executable="install_ucm.bat"/>
+		<delete file="install_ucm.bat"/>
+  	    </else>
+	</if>
+  </target>
+
+  <target name="install_service_bus">
+	<echo>INSTALLING SERVICE BUS</echo>
+	<if>
+	    <equals arg1="${os_family}" arg2="unix"/>
+	    <then>
+		<echo file="install_osb">${SOFTWARE_DIRECTORY_OSB}/Disk1/runInstaller -silent -ignoreSysPrereqs -responsefile ${TEMPORARY_DIRECTORY}/silent-service-bus.txt -jreLoc ${JAVA_HOME} -invPtrLoc ${TEMPORARY_DIRECTORY}/oraInst.loc</echo>
+		<exec executable="/bin/bash">
+		   <arg value="install_osb"/>
+		</exec>
+		<delete file="install_osb"/>
+	    </then>
+	    <else>
+		<echo file="install_osb.bat">${SOFTWARE_DIRECTORY_OSB}/Disk1/setup.exe -silent -ignoreSysPrereqs -responsefile ${TEMPORARY_DIRECTORY}/silent-service-bus.txt -jreLoc ${JAVA_HOME}</echo>
+		<exec executable="cmd">
+			 <arg value="/c"/>
+			 <arg value="install_osb.bat"/>
+			 <arg value="-p"/>
+		</exec>
+		<delete file="install_osb.bat"/>
+  	    </else>
+	</if>
+  </target>
+	
+  <target name="install_db_client">
+	<antcall target="create_db_silent_resp"/>
+	<echo>INSTALLING DATABASE CLIENT</echo>
+	<if>
+	    <equals arg1="${os_family}" arg2="unix"/>
+	    <then>
+		<echo file="install_db_client">${SOFTWARE_DIRECTORY_DB_CLIENT}/client/runInstaller -silent -ignoreSysPrereqs -responseFile ${TEMPORARY_DIRECTORY}/silent-db-client.rsp</echo>
+		<exec executable="/bin/bash">
+		   <arg value="install_db_client"/>
+		</exec>
+		<delete file="install_db_client"/>
+	    </then>
+	    <else>
+		<echo file="install_db_client.bat">${SOFTWARE_DIRECTORY_DB_CLIENT}/client/setup.exe -silent -ignoreSysPrereqs  -ignoreDiskWarning -responseFile ${TEMPORARY_DIRECTORY}/silent-db-client.rsp</echo>
+		<exec executable="cmd">
+			 <arg value="/c"/>
+			 <arg value="install_db_client.bat"/>
+			 <arg value="-p"/>
+		</exec>
+		<delete file="install_db_client.bat"/>
+  	    </else>
+	</if>
+  </target>
+
+  <target name="silent_install">
+	  <if>
+	  <available file="${TEMPORARY_DIRECTORY}" type="dir"/>
+	  	<then></then>
+	  	<else>
+	      		<mkdir dir="${TEMPORARY_DIRECTORY}"/>
+		</else>
+	  </if>
+	  <!--<antcall target="drop_repository"/>
+	  <antcall target="create_repository"/>
+	  <antcall target="create_silent_install_files"/>
+	  <antcall target="install_jrockit"/>
+	  <antcall target="install_weblogic"/>
+	  <antcall target="install_service_bus"/>
+	  <antcall target="install_soa"/>
+	  <antcall target="install_ucm"/>
+	  <antcall target="create_domain"/>-->
+  </target>
+
+  <target name="create_domain">
+	<input     message="Please enter the Admin Server user name:" addproperty="adminUser"/>
+	<input     message="Please enter the Admin Server password:" addproperty="adminPassword"/>
+	<ant antfile="replace-properties.xml" target="replace_all">
+		<property name="adminUser" value="${adminUser}"/>
+		<property name="adminPassword" value="${adminPassword}"/>
+	</ant>
+	<echo>CREATE DOMAIN</echo>
+	<if>
+	    <equals arg1="${os_family}" arg2="unix"/>
+	    <then>
+		<echo file="create_domain">#!/bin/sh${line.separator} ${Oracle_SOA1_HOME}/common/bin/wlst.sh -loadProperties ${user.dir}/silent-install.properties ${user.dir}/create_environment_wk.py</echo>
+		<echo>${user.dir}</echo>
+		<exec executable="/bin/bash">
+		   <arg value="create_domain"/>
+		</exec>
+	    </then>
+	    <else>
+		<echo file="create_domain.bat">CALL ${Oracle_SOA1_HOME}/common/bin/wlst.cmd -loadProperties ${user.dir}/silent-install.properties ${user.dir}/create_environment_wk.py</echo>
+		<exec executable="create_domain.bat"/>
+  	    </else>
+	</if>
+	<if>
+		<!-- if cluster -->
+		<contains string="${MACHINE_ADDRESS}" substring="," />
+		<then>
+			<antcall target="create_soa_UDD"/>
+		</then>
+	</if>
+	<delete file="create_domain"/>
+	<delete file="create_domain.bat"/>
+	<delete file="create_environment_wk.py"/>
+  </target>
+  
+  
+  <target name="configure_capture">
+	<input     message="Please enter the Admin Server user name:" addproperty="adminUser"/>
+	<input     message="Please enter the Admin Server password:" addproperty="adminPassword"/>
+	<ant antfile="replace-properties.xml" target="configure_capture">
+		<property name="adminUser" value="${adminUser}"/>
+		<property name="adminPassword" value="${adminPassword}"/>
+	</ant>
+	<echo>CONFIGURE CAPTURE</echo>
+	<if>
+	    <equals arg1="${os_family}" arg2="unix"/>
+	    <then>
+		<echo file="configure_capture">#!/bin/sh${line.separator} ${Oracle_UCM1_HOME}/common/bin/wlst.sh -loadProperties ${user.dir}/silent-install.properties ${user.dir}/configure_capture_wk.py</echo>
+		<echo>${user.dir}</echo>
+		<exec executable="/bin/bash">
+		   <arg value="configure_capture"/>
+		</exec>
+	    </then>
+	    <else>
+		<echo file="configure_capture.bat">CALL ${Oracle_UCM1_HOME}/common/bin/wlst.cmd -loadProperties ${user.dir}/silent-install.properties ${user.dir}/configure_capture_wk.py</echo>
+		<exec executable="configure_capture.bat"/>
+  	    </else>
+	</if>
+	<echo file="${MIDDLEWARE_HOME}/user_projects/domains/${DOMAIN_NAME}/config/nodemanager/nm_password.properties">password=${adminPassword}${line.separator}username=${adminUser}</echo>
+	<delete file="configure_capture"/>
+	<delete file="configure_capture.bat"/>
+	<delete file="configure_capture_wk.py"/>
+  </target>
+  
+    <target name="create_soa_UDD">
+	<echo>CREATE SOA UDD</echo>
+	<if>
+	    <equals arg1="${os_family}" arg2="unix"/>
+	    <then>
+		<echo file="create_soa_UDD">#!/bin/sh${line.separator} ${Oracle_SOA1_HOME}/common/bin/wlst.sh ${Oracle_SOA1_HOME}/bin/soa-createUDD.py --domain_home ${CONFIGURATION_HOME}/domains/${DOMAIN_NAME} --soacluster soa_cluster</echo>
+		<exec executable="/bin/bash">
+		   <arg value="create_soa_UDD"/>
+		</exec>
+	    </then>
+	    <else>
+		<echo file="create_soa_UDD.bat">CALL ${Oracle_SOA1_HOME}/common/bin/wlst.cmd ${Oracle_SOA1_HOME}/bin/soa-createUDD.py --domain_home ${CONFIGURATION_HOME}/domains/${DOMAIN_NAME} --soacluster soa_cluster</echo>
+		<exec executable="create_soa_UDD.bat"/>
+  	    </else>
+	</if>
+	<delete file="create_soa_UDD"/>
+	<delete file="create_soa_UDD.bat"/>
+  </target>
+
+  <target name="enroll_domain">
+	<ant antfile="replace-properties.xml" target="replace_all"/>
+	<if>
+	    <equals arg1="${os_family}" arg2="unix"/>
+	    <then>
+		<echo file="enroll_domain">#!/bin/sh${line.separator} ${WEBLOGIC_HOME}/common/bin/wlst.sh -loadProperties ${user.dir}/environment.properties ${user.dir}/enroll_node_manager_wk.py</echo>
+		<echo>${user.dir}</echo>
+		<exec executable="/bin/bash">
+		   <arg value="enroll_domain"/>
+		</exec>
+	    </then>
+	    <else>
+		<echo file="enroll_domain.bat">CALL ${WEBLOGIC_HOME}/common/bin/wlst.cmd -loadProperties ${user.dir}/environment.properties ${user.dir}/enroll_node_manager_wk.py</echo>
+		<exec executable="enroll_domain.bat"/>
+  	    </else>
+	</if>	
+	<delete file="enroll_domain"/>
+	<delete file="enroll_domain.bat"/>
+	<delete file="enroll_node_manager_wk.py"/>
+  </target>
+  
+  <target name="startNodeManager">
+	<!--change StartScriptEnabled and StopScriptEnabled to true -->
+	<propertyfile file="${WEBLOGIC_HOME}/common/nodemanager/nodemanager.properties" comment="nodemanger properties">
+		  <entry  key="StartScriptEnabled" value="true"/>
+		  <entry  key="StopScriptEnabled" value="true"/>
+		  <entry  key="ListenPort" value="5556"/>
+		  <entry  key="SecureListener" value="false"/>
+	</propertyfile>
+	<echo>START NODE MANAGER</echo>
+	<if>
+		<equals arg1="${os_family}" arg2="unix"/>
+		<then>
+		<echo file="nodemanger">#!/bin/sh${line.separator} ${WEBLOGIC_HOME}/common/bin/wlst.sh -loadProperties ${user.dir}/silent-install.properties ${user.dir}/nodemanager.py</echo>
+		<echo>${user.dir}</echo>
+		<exec executable="/bin/bash">
+		   <arg value="nodemanger"/>
+		</exec>
+		</then>
+		<else>
+		<echo file="nodemanger.bat">CALL ${WEBLOGIC_HOME}/common/bin/wlst.cmd -loadProperties ${user.dir}/silent-install.properties ${user.dir}/nodemanager.py</echo>
+		<exec executable="nodemanger.bat"/>
+		</else>
+	</if>
+	
+	<delete file="nodemanger"/>
+	<delete file="nodemanger.bat"/>
+  </target>
+  
+  <target name="startAdminServer">
+	<echo>START ADMIN SERVER</echo>
+	<if>
+		<equals arg1="${os_family}" arg2="unix"/>
+		<then>
+		<echo file="startAdminServer">#!/bin/sh${line.separator} ${WEBLOGIC_HOME}/common/bin/wlst.sh -loadProperties ${user.dir}/silent-install.properties ${user.dir}/startAdminServer.py</echo>
+		<echo>${user.dir}</echo>
+		<exec executable="/bin/bash">
+		   <arg value="startAdminServer"/>
+		</exec>
+		</then>
+		<else>
+		<echo file="startAdminServer.bat">CALL ${WEBLOGIC_HOME}/common/bin/wlst.cmd -loadProperties ${user.dir}/silent-install.properties ${user.dir}/startAdminServer.py</echo>
+		<exec executable="startAdminServer.bat"/>
+		</else>
+	</if>
+	<delete file="startAdminServer"/>
+	<delete file="startAdminServer.bat"/>
+  </target>
+
+  <target name="startAllServers">
+	<echo>START ALL SERVERS</echo>
+	<if>
+		<equals arg1="${os_family}" arg2="unix"/>
+		<then>
+		<echo file="startAllServers">#!/bin/sh${line.separator} ${WEBLOGIC_HOME}/common/bin/wlst.sh -loadProperties ${user.dir}/silent-install.properties ${user.dir}/startAllServers.py</echo>
+		<echo>${user.dir}</echo>
+		<exec executable="/bin/bash">
+		   <arg value="startAllServers"/>
+		</exec>
+		</then>
+		<else>
+		<echo file="startAllServers.bat">CALL ${WEBLOGIC_HOME}/common/bin/wlst.cmd -loadProperties ${user.dir}/silent-install.properties ${user.dir}/startAllServers.py</echo>
+		<exec executable="startAllServers.bat"/>
+		</else>
+	</if>
+	<delete file="startAllServers"/>
+	<delete file="startAllServers.bat"/>
+  </target>
+
+  <target name="stopAllServers">
+	<echo>STOP ALL SERVERS</echo>
+	<if>
+		<equals arg1="${os_family}" arg2="unix"/>
+		<then>
+		<echo file="stopAllServers">#!/bin/sh${line.separator} ${WEBLOGIC_HOME}/common/bin/wlst.sh -loadProperties ${user.dir}/silent-install.properties ${user.dir}/stopAllServers.py</echo>
+		<echo>${user.dir}</echo>
+		<exec executable="/bin/bash">
+		   <arg value="stopAllServers"/>
+		</exec>
+		</then>
+		<else>
+		<echo file="stopAllServers.bat">CALL ${WEBLOGIC_HOME}/common/bin/wlst.cmd -loadProperties ${user.dir}/silent-install.properties ${user.dir}/stopAllServers.py</echo>
+		<exec executable="stopAllServers.bat"/>
+		</else>
+	</if>
+	<delete file="stopAllServers"/>
+	<delete file="stopAllServers.bat"/>
+  </target>
+  
+  <target name="startServer">
+	<echo>START ADMIN SERVER</echo>
+	<if>
+		<equals arg1="${os_family}" arg2="unix"/>
+		<then>
+		<echo file="startServer">${CONFIGURATION_HOME}/domains/${DOMAIN_NAME}/bin/startWeblogic.sh</echo>
+		<echo>${user.dir}</echo>
+		<exec executable="/bin/bash">
+		   <arg value="startServer"/>
+		</exec>
+		</then>
+		<else>
+		<echo file="startServer.bat">${CONFIGURATION_HOME}/domains/${DOMAIN_NAME}/bin/startWeblogic.cmd</echo>
+		<exec executable="startServer.bat"/>
+		</else>
+	</if>
+	<delete file="startServer"/>
+	<delete file="startServer.bat"/>
+  </target>
+  
+  <target name="stopServer">
+	<ant antfile="replace-properties.xml" target="stopServer"/>
+	<echo>STOP ADMIN SERVER</echo>
+	<if>
+		<equals arg1="${os_family}" arg2="unix"/>
+		<then>
+		<echo file="stopServer">#!/bin/sh${line.separator} ${WEBLOGIC_HOME}/common/bin/wlst.sh ${user.dir}/stopServer_wk.py</echo>
+		<echo>${user.dir}</echo>
+		<exec executable="/bin/bash">
+		   <arg value="stopServer"/>
+		</exec>
+		</then>
+		<else>
+		<echo file="stopServer.bat">CALL ${WEBLOGIC_HOME}/common/bin/wlst.cmd ${user.dir}/stopServer_wk.py</echo>
+		<exec executable="stopServer.bat"/>
+		</else>
+	</if>
+	<delete file="stopServer"/>
+	<delete file="stopServer.bat"/>
+	<delete file="stopServer_wk.py"/>
+  </target>
+  
+  <target name="createAuthFiles_set_nodemng_cred">
+	<input     message="Please enter the Admin Server user name:" addproperty="adminUser"/>
+	<input     message="Please enter the Admin Server password:" addproperty="adminPassword"/>
+	<ant antfile="replace-properties.xml" target="replace_for_createAuthFiles_set_nodemng_cred">
+		<property name="adminUser" value="${adminUser}"/>
+		<property name="adminPassword" value="${adminPassword}"/>
+	</ant>
+	<copy file="userconfigfile.secure" tofile="${MIDDLEWARE_HOME}/user_projects/domains/${DOMAIN_NAME}/wlst_scripts/userconfigfile.secure" overwrite="true"/>
+	<copy file="userkeyfile.secure" tofile="${MIDDLEWARE_HOME}/user_projects/domains/${DOMAIN_NAME}/wlst_scripts/userkeyfile.secure" overwrite="true"/>
+	<!--<copy file="plan_ra.xml" tofile="${Oracle_SOA1_HOME}/soa/connectors/plan.xml" overwrite="true"/>-->
+	<copy file="Plan.xml" tofile="${Oracle_SOA1_HOME}/soa/connectors/DbAdapterPlan/Plan.xml" overwrite="true"/>
+	<replace file="${Oracle_SOA1_HOME}/soa/connectors/DbAdapterPlan/Plan.xml" token="Oracle_SOA1_HOME"  value="${Oracle_SOA1_HOME}"/>
+	<copy file="JMSPlan.xml" tofile="${Oracle_SOA1_HOME}/soa/connectors/JmsAdapterPlan/Plan.xml" overwrite="true"/>
+	<replace file="${Oracle_SOA1_HOME}/soa/connectors/JmsAdapterPlan/Plan.xml" token="Oracle_SOA1_HOME"  value="${Oracle_SOA1_HOME}"/>
+
+	<mkdir dir="${MIDDLEWARE_HOME}/user_projects/domains/${DOMAIN_NAME}/ucm/cs/bin"/>
+
+	<propertyfile file="${MIDDLEWARE_HOME}/user_projects/domains/${DOMAIN_NAME}/ucm/cs/bin/autoinstall.cfg" comment="nodemanger properties">
+		<entry  key="IDC_Name" value="UCM_server1"/>
+		<entry  key="IDC_ID" value="UCM_server1"/>
+		<entry  key="AutoInstallComplete" value="true"/>
+		<entry  key="AutoNumberPrefix" value="WCC"/>
+		<entry  key="IsAutoNumber" value="1"/>
+		<entry  key="IntradocServerPort" value="4444"/>
+		<entry  key="SocketHostAddressSecurityFilter" value="127.0.0.1|0.0.0.0.0.0.0.1"/>
+		<entry  key="MailServer" value="mail.mycompany.com"/>
+		<entry  key="SysAdminAddress" value="admin@mycompany.com"/>
+		<entry  key="InstanceDescription" value="Inspyrus WCC instance"/>
+		<entry  key="InstanceMenuLabel" value="Inspyrus WCC instance"/>
+		<entry  key="SearchIndexerEngineName" value="DATABASE.METADATA"/>
+		<entry  key="IntradocDir" value="${INTRADOCDIR}"/>
+		<entry  key="VaultDir" value="${VAULTDIR}"/>
+		<entry  key="WeblayoutDir" value="${WEBLAYOUTDIR}"/>
+		<entry  key="UserProfilesDir" value="${USERPROFILESDIR}"/>
+		<entry  key="ServiceAllowRetry" value="true"/>
+		<entry  key="DisableSharedCacheChecking" value="true"/>
+	</propertyfile>
+
+	<echo>CREATING AUTH FILES AND SETTING NODE MANAGER CREDENTIALS</echo>
+	<if>
+		<equals arg1="${os_family}" arg2="unix"/>
+		<then>
+		<echo file="createAuthFiles_set_nodemng_cred">#!/bin/sh${line.separator} ${Oracle_SOA1_HOME}/common/bin/wlst.sh -loadProperties ${user.dir}/silent-install.properties ${user.dir}/createAuthFiles_set_nodemng_cred_wk.py</echo>
+		<echo>${user.dir}</echo>
+		<exec executable="/bin/bash">
+		   <arg value="createAuthFiles_set_nodemng_cred"/>
+		</exec>
+		</then>
+		<else>
+		<echo file="createAuthFiles_set_nodemng_cred.bat">CALL ${Oracle_SOA1_HOME}/common/bin/wlst.cmd -loadProperties ${user.dir}/silent-install.properties ${user.dir}/createAuthFiles_set_nodemng_cred_wk.py</echo>
+		<exec executable="createAuthFiles_set_nodemng_cred.bat"/>
+		</else>
+	</if>
+	<delete file="createAuthFiles_set_nodemng_cred"/>
+	<delete file="createAuthFiles_set_nodemng_cred.bat"/>
+	<delete file="createAuthFiles_set_nodemng_cred_wk.py"/>
+	<antcall target="create_start_server_files"/>
+  </target>
+  
+  <target name="configure_ipm_input_agent">
+	<echo>CONFIGURING IPM INPUT AGENT</echo>
+	<if>
+		<equals arg1="${os_family}" arg2="unix"/>
+		<then>
+		<echo file="configure_ipm_input_agent">#!/bin/sh${line.separator} ${Oracle_UCM1_HOME}/common/bin/wlst.sh -loadProperties ${user.dir}/silent-install.properties ${user.dir}/configure_ipm_input_agent.py</echo>
+		<echo>${user.dir}</echo>
+		<exec executable="/bin/bash">
+		   <arg value="configure_ipm_input_agent"/>
+		</exec>
+		</then>
+		<else>
+		<echo file="configure_ipm_input_agent.bat">CALL ${Oracle_UCM1_HOME}/common/bin/wlst.cmd -loadProperties ${user.dir}/silent-install.properties ${user.dir}/configure_ipm_input_agent.py</echo>
+		<exec executable="configure_ipm_input_agent.bat"/>
+		</else>
+	</if>
+	<delete file="configure_ipm_input_agent"/>
+	<delete file="configure_ipm_input_agent.bat"/>
+  </target>
+    
+  <target name="moveFilesToServer">
+	<copy todir="${MIDDLEWARE_HOME}/modules" overwrite="true">
+		<fileset dir="${user.dir}/soa-modules" includes="*.jar" />
+	</copy>
+	<copy todir="${MIDDLEWARE_HOME}/modules/features" overwrite="true">
+		<fileset dir="${user.dir}/soa-modules/features" includes="*.*" />
+	</copy>
+  </target>
+  
+  
+  
+  <target name="change_memory_settings">
+	<if>
+	    <equals arg1="${os_family}" arg2="unix"/>
+	    <then>
+		<echo file="change_memory_settings">sed '/export WL_HOME/ a\\nif [ "${ADMIN_URL}" = "" ] ; then\n	USER_MEM_ARGS="-Xms1024m -Xmx1024m -Xns256m -Xgc:pausetime -XpauseTarget=500ms"\n	export USER_MEM_ARGS\nelse\n	USER_MEM_ARGS="-Xms1024m -Xmx1024m -Xgc:throughput"\n	export USER_MEM_ARGS\nfi' ${CONFIGURATION_HOME}/domains/${DOMAIN_NAME}/bin/setDomainEnv.sh > ${TEMPORARY_DIRECTORY}/setDomainEnv.sh</echo>
+		<exec executable="/bin/bash">
+		   <arg value="change_memory_settings"/>
+		</exec>
+		<move file="${TEMPORARY_DIRECTORY}/setDomainEnv.sh" tofile="${CONFIGURATION_HOME}/domains/${DOMAIN_NAME}/bin/setDomainEnv.sh"/>
+	    </then>
+	    <else>
+		<echo file="change_memory_settings">sed '/export WL_HOME/ a\\nif [ "${ADMIN_URL}" = "" ] ; then\n	USER_MEM_ARGS="-Xms1024m -Xmx1024m -Xns256m -Xgc:pausetime -XpauseTarget=500ms"\n	export USER_MEM_ARGS\nelse\n	USER_MEM_ARGS="-Xms1024m -Xmx1024m -Xgc:throughput"\n	export USER_MEM_ARGS\nfi' ${CONFIGURATION_HOME}/domains/${DOMAIN_NAME}/bin/setDomainEnv.sh > ${TEMPORARY_DIRECTORY}/setDomainEnv.sh</echo>
+		<exec executable="change_memory_settings.bat"/>
+  	    </else>
+	</if>	
+	
+  </target>
+  
+  <target name="pack">
+	<if>
+	    <equals arg1="${os_family}" arg2="unix"/>
+	    <then>
+		<echo file="pack_config">#!/bin/sh${line.separator} ${WEBLOGIC_HOME}/common/bin/pack.sh -managed=true -domain=${CONFIGURATION_HOME}/domains/${DOMAIN_NAME} -template=${user.dir}/wcc_template.jar -template_name="wcc domain"</echo>
+		<exec executable="/bin/bash">
+		   <arg value="pack_config"/>
+		</exec>
+	    </then>
+	    <else>
+		<echo file="pack_config.bat">CALL ${WEBLOGIC_HOME}/common/bin/pack.cmd -managed=true -domain=${CONFIGURATION_HOME}/domains/${DOMAIN_NAME} -template=${user.dir}/wcc_template.jar -template_name="wcc domain"</echo>
+		<exec executable="pack_config.bat"/>
+  	    </else>
+	</if>	
+	<delete file="pack_config"/>
+	<delete file="pack_config.bat"/>
+  </target>
+  
+  <target name="unpack">
+	<if>
+	    <equals arg1="${os_family}" arg2="unix"/>
+	    <then>
+		<echo file="unpack_config">#!/bin/sh${line.separator} ${WEBLOGIC_HOME}/common/bin/unpack.sh -managed=true -domain=${CONFIGURATION_HOME}/domains/${DOMAIN_NAME} -template=${user.dir}/wcc_template.jar</echo>
+		<exec executable="/bin/bash">
+		   <arg value="unpack_config"/>
+		</exec>
+	    </then>
+	    <else>
+		<echo file="unpack_config.bat">CALL ${WEBLOGIC_HOME}/common/bin/unpack.cmd -managed=true -domain=${CONFIGURATION_HOME}/domains/${DOMAIN_NAME} -template=${user.dir}/wcc_template.jar</echo>
+		<exec executable="unpack_config.bat"/>
+  	    </else>
+	</if>	
+	
+	<ant antfile="replace-properties.xml" target="set_node_mngr_prop_after_unpack"/>
+	<!--change StartScriptEnabled and StopScriptEnabled to true -->
+	<if>
+		<equals arg1="${SSL_ENABLED}" arg2="YES"/>
+		<then>
+			<propertyfile file="${WEBLOGIC_HOME}/common/nodemanager/nodemanager.properties" comment="nodemanger properties">
+				  <entry  key="CustomIdentityAlias" value="CustomIdentityAndCustomTrust"/>
+				  <entry  key="CustomIdentityAlias" value="mykey"/>
+				  <entry  key="CustomIdentityKeyStoreFileName" value="${IDENTITY_KEY_STORE}"/>
+				  <entry  key="CustomIdentityKeyStorePassPhrase" value="${IDENTITY_KEYSTORE_PASS_PHRASE}"/>
+				  <entry  key="CustomIdentityKeyStoreType" value="JKS"/>
+				  <entry  key="CustomIdentityPrivateKeyPassPhrase" value="${SERVER_PRIVATE_KEY_PASS_PHRASE}"/>
+			</propertyfile>
+		</then>
+	</if>
+	<delete file="unpack_config"/>
+	<delete file="unpack_config.bat"/>
+  </target>
+  
+  <target name="enableUCMComponent">
+	<if>
+	    <equals arg1="${os_family}" arg2="unix"/>
+	    <then>
+		<echo file="enableUCMComponent">#!/bin/sh${line.separator} ${Oracle_UCM1_HOME}/common/bin/wlst.sh -loadProperties ${user.dir}/silent-install.properties ${user.dir}/enableUCMComponent.py</echo>
+		<echo>${user.dir}</echo>
+		<exec executable="/bin/bash">
+		   <arg value="enableUCMComponent"/>
+		</exec>
+	    </then>
+	    <else>
+		<echo file="enableUCMComponent.bat">CALL ${Oracle_UCM1_HOME}/common/bin/wlst.cmd -loadProperties ${user.dir}/silent-install.properties ${user.dir}/enableUCMComponent.py</echo>
+		<exec executable="enableUCMComponent.bat"/>
+  	    </else>
+	</if>
+	<delete file="enableUCMComponent"/>
+	<delete file="enableUCMComponent.bat"/>
+  </target>
+  
+  <target name="create_start_server_files">
+	<copy file="start_server_build.xml" tofile="${MIDDLEWARE_HOME}/user_projects/domains/${DOMAIN_NAME}/wlst_scripts/build.xml" overwrite="true"/>
+	<copy file="startAdminServer.py" tofile="${MIDDLEWARE_HOME}/user_projects/domains/${DOMAIN_NAME}/wlst_scripts/startAdminServer.py" overwrite="true"/>
+	<copy file="startAllServers.py" tofile="${MIDDLEWARE_HOME}/user_projects/domains/${DOMAIN_NAME}/wlst_scripts/startAllServers.py" overwrite="true"/>
+	<copy file="stopAllServers.py" tofile="${MIDDLEWARE_HOME}/user_projects/domains/${DOMAIN_NAME}/wlst_scripts/stopAllServers.py" overwrite="true"/>
+	<copy file="nodemanager.py" tofile="${MIDDLEWARE_HOME}/user_projects/domains/${DOMAIN_NAME}/wlst_scripts/nodemanager.py" overwrite="true"/>
+	<copy file="createAuthFiles.py" tofile="${MIDDLEWARE_HOME}/user_projects/domains/${DOMAIN_NAME}/wlst_scripts/createAuthFiles.py" overwrite="true"/>
+	<copy file="${user.dir}/ant-contrib.jar" tofile="${MIDDLEWARE_HOME}/user_projects/domains/${DOMAIN_NAME}/wlst_scripts/ant-contrib.jar" overwrite="true"/>
+	<echo file="${MIDDLEWARE_HOME}/user_projects/domains/${DOMAIN_NAME}/wlst_scripts/silent-install.properties">
+		JAVA_HOME=${JAVA_HOME}
+		CONFIGURATION_HOME=${CONFIGURATION_HOME}
+		DOMAIN_NAME=${DOMAIN_NAME}
+		ADMIN_HOST=${ADMIN_HOST}
+		NODE_MANAGER_MODE=${NODE_MANAGER_MODE}
+		WEBLOGIC_HOME=${WEBLOGIC_HOME}
+	</echo>
+	<if>
+	    <equals arg1="${os_family}" arg2="unix"/>
+	    <then>
+		<echo file="${MIDDLEWARE_HOME}/user_projects/domains/${DOMAIN_NAME}/wlst_scripts/setEnvironmentVars.sh">
+			export PATH=$PATH:${MIDDLEWARE_HOME}/modules/org.apache.ant_1.7.1/bin
+			export JAVA_HOME=${JAVA_HOME}
+		</echo>
+	    </then>
+	    <else>
+		<echo file="${MIDDLEWARE_HOME}/user_projects/domains/${DOMAIN_NAME}/wlst_scripts/setEnvironmentVars.sh">
+			set PATH=%PATH%;${MIDDLEWARE_HOME}/modules/org.apache.ant_1.7.1/bin
+			set JAVA_HOME=${JAVA_HOME}
+		</echo>
+  	    </else>
+	</if>
+  </target>
+
+  <target name="createJMSTopic">
+	<input     message="Please enter the Admin Server user name:" addproperty="adminUser"/>
+	<input     message="Please enter the Admin Server password:" addproperty="adminPassword"/>
+	<ant antfile="replace-properties.xml" target="replace_for_create_JMS_Topic">
+		<property name="adminUser" value="${adminUser}"/>
+		<property name="adminPassword" value="${adminPassword}"/>
+	</ant>
+	<copy file="userconfigfile.secure" tofile="${MIDDLEWARE_HOME}/user_projects/domains/${DOMAIN_NAME}/wlst_scripts/userconfigfile.secure" overwrite="true"/>
+	<copy file="userkeyfile.secure" tofile="${MIDDLEWARE_HOME}/user_projects/domains/${DOMAIN_NAME}/wlst_scripts/userkeyfile.secure" overwrite="true"/>
+	<copy file="JMSPlan.xml" tofile="${Oracle_SOA1_HOME}/soa/connectors/JmsAdapterPlan/Plan.xml" overwrite="true"/>
+	<replace file="${Oracle_SOA1_HOME}/soa/connectors/JmsAdapterPlan/Plan.xml" token="Oracle_SOA1_HOME"  value="${Oracle_SOA1_HOME}"/>
+
+	<echo>Creating JMS Topic</echo>
+	<if>
+		<equals arg1="${os_family}" arg2="unix"/>
+		<then>
+		<echo file="JMSConfiguration">#!/bin/sh${line.separator} ${Oracle_SOA1_HOME}/common/bin/wlst.sh -loadProperties ${user.dir}/silent-install.properties ${user.dir}/JMSConfiguration_wk.py</echo>
+		<echo>${user.dir}</echo>
+		<exec executable="/bin/bash">
+		   <arg value="JMSConfiguration"/>
+		</exec>
+		</then>
+		<else>
+		<echo file="JMSConfiguration.bat">CALL ${Oracle_SOA1_HOME}/common/bin/wlst.cmd -loadProperties ${user.dir}/silent-install.properties ${user.dir}/JMSConfiguration_wk.py</echo>
+		<exec executable="JMSConfiguration.bat"/>
+		</else>
+	</if>
+	<delete file="JMSConfiguration"/>
+	<delete file="JMSConfiguration.bat"/>
+	<delete file="JMSConfiguration_wk.py"/>
+  </target>
+
+  <target name="createEmailJMSQueue">
+	<input     message="Please enter the Admin Server user name:" addproperty="adminUser"/>
+	<input     message="Please enter the Admin Server password:" addproperty="adminPassword"/>
+	<ant antfile="replace-properties.xml" target="replace_for_create_Email_JMS_Queue">
+		<property name="adminUser" value="${adminUser}"/>
+		<property name="adminPassword" value="${adminPassword}"/>
+	</ant>
+
+	<echo>Creating Email JMS Queue</echo>
+	<if>
+		<equals arg1="${os_family}" arg2="unix"/>
+		<then>
+		<echo file="EmailJMSConfiguration">#!/bin/sh${line.separator} ${Oracle_SOA1_HOME}/common/bin/wlst.sh -loadProperties ${user.dir}/silent-install.properties ${user.dir}/EmailJMSConfiguration_wk.py</echo>
+		<echo>${user.dir}</echo>
+		<exec executable="/bin/bash">
+		   <arg value="EmailJMSConfiguration"/>
+		</exec>
+		</then>
+		<else>
+		<echo file="EmailJMSConfiguration.bat">CALL ${Oracle_SOA1_HOME}/common/bin/wlst.cmd -loadProperties ${user.dir}/silent-install.properties ${user.dir}/EmailJMSConfiguration_wk.py</echo>
+		<exec executable="EmailJMSConfiguration.bat"/>
+		</else>
+	</if>
+	<delete file="EmailJMSConfiguration"/>
+	<delete file="EmailJMSConfiguration.bat"/>
+	<delete file="EmailJMSConfiguration_wk.py"/>
+  </target>
+</project>

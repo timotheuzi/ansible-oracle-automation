@@ -1,0 +1,49 @@
+################################################################################
+# ==> Main Tasks for fmw-patch Role
+# ==> Patches new Domain with Fussion Middleware Infra software
+# ==> Compatible with 11g
+################################################################################    
+# ==> patch new domain
+
+- name: Changing permission of "{{ inspyrus_install }}"
+  file: path="{{ inspyrus_install }}" owner={{ oracle_user }} mode=0777 recurse=yes
+
+- name: Changing permission of "{{ oracle_base }}"
+  file: path="{{ oracle_base }}" owner={{ oracle_user }} mode=0777 recurse=yes
+
+- name: Run opatch to apply patch p22245024_111190_Generic in Oracle_UCM1
+  command: "./opatch apply {{ inspyrus_install }}/Patches/p22245024_111190_Generic.zip"
+  args:
+    chdir: "{{ middleware_home }}/Oracle_UCM1/OPatch"  
+  environment:
+    ORACLE_HOME: "{{ middleware_home }}/Oracle_UCM1"
+    
+- name: Run opatch to apply patch p23723034_111190_Generic in Oracle_UCM1
+  command: "./opatch apply {{ inspyrus_install }}/Patches/p23723034_111190_Generic.zip"
+  args:
+    chdir: "{{ middleware_home }}/Oracle_UCM1/OPatch"  
+  environment:
+    ORACLE_HOME: "{{ middleware_home }}/Oracle_UCM1"
+    #PATH: "{{ env_path }}/bin:{{ ant_home }}/bin:{{ ant_home }}/lib"
+
+- name: Run opatch to apply patch p25809237_111190_Generic in SOA home
+  expect:
+  args:
+    timeout: 400  
+    command: "./opatch apply {{ inspyrus_install }}/Patches/p25809237_111190_Generic.zip -jre {{ jdk_folder }}"
+    chdir: "{{ middleware_home }}/Oracle_SOA1/OPatch" 
+    responses:
+      "[y|n]": "y"  
+  environment:
+    ORACLE_HOME: "{{ middleware_home }}/Oracle_SOA1" 
+
+- name: Run opatch to apply patch p25809237_111190_Generic in oracle common
+  expect:
+  args:
+    timeout: 400
+    command: "./opatch apply {{ inspyrus_install }}/Patches/p25809237_111190_Generic.zip -jre {{ jdk_folder }}"
+    chdir: "{{ middleware_home }}/oracle_common/OPatch"
+    responses:
+      "[y|n]": "y"  
+  environment:
+    ORACLE_HOME: "{{ middleware_home }}/oracle_common"

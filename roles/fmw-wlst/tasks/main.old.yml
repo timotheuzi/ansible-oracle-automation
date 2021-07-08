@@ -1,0 +1,106 @@
+################################################################################
+# ==> Main Tasks for wlst actions
+# ==> Starts Weblogic, copies relevent files for node manager, and starts all 
+# ==> managed servers
+################################################################################    
+# ==> 
+- name: Run ant to create node manager files 
+  expect:
+  become: yes
+  become_user: oracle
+  args:
+    timeout: 300  
+    chdir: "{{ inspy_capture }}"  
+    command: "ant startAdminServer"
+    responses:
+      "Please enter the Admin Server user name": "{{ weblogic_admin }}"
+      "password": "{{ weblogic_admin_pass }}"
+  environment:
+    JAVA_HOME: "{{ jdk_folder }}"
+    ANT_HOME: "{{ ant_home }}"
+    PATH: "{{ env_path }}/bin:{{ ant_home }}/bin:{{ ant_home }}/lib"
+- name: Run startWeblogic with async
+  become: yes
+  become_user: oracle
+  command: ./startWebLogic.sh
+  async: 999999999999999999
+  poll: 0  
+  args:
+    chdir: "{{ oracle_base }}/Middleware_Home/user_projects/domains/{{ domain_name }}/bin"  
+  environment:
+    JAVA_HOME: "{{ jdk_folder }}"
+    ANT_HOME: "{{ ant_home }}"
+    PATH: "{{ env_path }}:{{ jdk_folder }}/bin:{{ ant_home }}/bin:{{ ant_home }}/lib" 
+
+- name: Wait for Admin Server to startup
+  wait_for: port={{ admin_server_port }} delay=2 timeout=300
+
+- name: Copy updated create auth script file
+  template: src=createAuthFiles_set_nodemng_cred.py dest={{ dommain_user_projects }}/wlst_scripts/ owner={{ oracle_user }} group={{ oracle_group }} mode=0770
+
+- name: Run ant to create node manager files 
+  expect:
+  become: yes
+  become_user: oracle
+  args:
+    timeout: 300  
+    chdir: "{{ inspy_capture }}"  
+    command: "ant createAuthFiles_set_nodemng_cred"
+    responses:
+      "Please enter the Admin Server user name": "{{ weblogic_admin }}"
+      "password": "{{ weblogic_admin_pass }}"
+  environment:
+    JAVA_HOME: "{{ jdk_folder }}"
+    ANT_HOME: "{{ ant_home }}"
+    PATH: "{{ env_path }}/bin:{{ ant_home }}/bin:{{ ant_home }}/lib"
+
+- name: Copy Nodemanager Properties file
+  template: src=nodemanager.properties dest={{ nodemanager_home }} owner={{ oracle_user }} group={{ oracle_group }} mode=0770
+
+- name: Copy start all servers python file
+  template: src=startAllServers.py dest={{ dommain_user_projects }}/wlst_scripts/ owner={{ oracle_user }} group={{ oracle_group }} mode=0770
+  
+- name: Create security folder for UCM
+  file: state=directory path={{ dommain_user_projects }}/servers/UCM_server1/security owner={{ oracle_user }} group={{ oracle_group }}
+
+- name: Create boot properties file for UCM
+  template: src=boot.properties dest={{ dommain_user_projects }}/servers/UCM_server1/security/ owner={{ oracle_user }} group={{ oracle_group }}
+
+- name: Create security folder for IUI
+  file: state=directory path={{ dommain_user_projects }}/servers/iui_server1/security owner={{ oracle_user }} group={{ oracle_group }}
+
+- name: Create boot properties file for IUI
+  template: src=boot.properties dest={{ dommain_user_projects }}/servers/iui_server1/security/ owner={{ oracle_user }} group={{ oracle_group }}
+
+- name: Create security folder for OSB
+  file: state=directory path={{ dommain_user_projects }}/servers/osb_server1/security owner={{ oracle_user }} group={{ oracle_group }}
+
+- name: Create boot properties file for OSB
+  template: src=boot.properties dest={{ dommain_user_projects }}/servers/osb_server1/security/ owner={{ oracle_user }} group={{ oracle_group }}
+
+- name: Create security folder for SOA
+  file: state=directory path={{ dommain_user_projects }}/servers/soa_server1/security owner={{ oracle_user }} group={{ oracle_group }}
+
+- name: Create boot properties file for SOA
+  template: src=boot.properties dest={{ dommain_user_projects }}/servers/soa_server1/security/ owner={{ oracle_user }} group={{ oracle_group }}
+
+- name: Changing permissionissions of "{{ oracle_base }}"
+  become: yes
+  become_user: oracle
+  file: path="{{ oracle_base }}" owner={{ oracle_user }} group={{ oracle_group }} mode=0770 recurse=yes
+
+- name: Run a script to start all servers
+  become: yes 
+  become_user: oracle 
+  command: "./wlst.sh {{ dommain_user_projects }}/wlst_scripts/startAllServers.py"
+#  async: 99999999999999999999999999999999999999999
+#  poll: 0  
+  args:
+    chdir: "{{ weblogic_home }}/common/bin"  
+  environment:
+    JAVA_HOME: "{{ jdk_folder }}"
+    ANT_HOME: "{{ ant_home }}"
+    PATH: "{{ env_path }}/bin:{{ ant_home }}/bin:{{ ant_home }}/lib"
+
+- name: Waiting for SOA to come up
+  wait_for: port=8001 delay=2 timeout=30

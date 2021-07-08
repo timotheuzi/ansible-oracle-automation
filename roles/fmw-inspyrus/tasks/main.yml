@@ -1,0 +1,138 @@
+################################################################################
+# ==> tasks for deploy inspyrus Role. 
+# ==> Fussion Middleware domain on a weblogic server.
+# ##############################################################################
+- name: copy updated soa-environment.properties
+  template: src=soa-environment.properties dest='{{ inspy_deployment }}' owner={{ oracle_user }} mode=0770
+
+- name: copy updated inv_ui.xml
+  template: src=inv_ui.xml dest='{{ domain_user_projects }}' owner={{ oracle_user }} mode=0770
+  
+- name: deploy inspyrus admin servlet 
+  command: "ant deploy"
+  args:
+    chdir: "{{ inspy_administration }}"  
+
+- name: deploy inspyrus identityservices
+  command: "ant deploy"
+  args:
+    chdir: "{{ inspy_deployment }}/API/WS/IdentityServices"  
+
+- name: deploy inspyrus WorkflowService
+  command: "ant deploy"
+  args:
+    chdir: "{{ inspy_deployment }}/API/WS/WorkflowService"  
+
+- name: deploy inspyrus InvoiceProcessing
+  command: "ant deploy"
+  args:
+    chdir: "{{ inspy_deployment }}/API/WS/InvoiceProcessing"  
+
+- name: deploy inspyrus InputArtifactsCreator
+  expect:
+  args:
+    command: "ant deploy"
+    chdir: "{{ inspy_deployment }}/API/WS/InputArtifactsCreator"  
+    responses:
+      "Entity Id": "{{ entity_id }}"
+      "Please enter PDF template files path": "{{ inspyrus_install }}/Entity_Configuration/eInvoice_Template"    
+
+- name: deploy inspyrus infastructure
+  command: "ant deploy"
+  args:
+    chdir: "{{ inspy_deployment }}/API/InspyrusLibraries/InspyrusInfrastructure"  
+    
+- name: deploy inspyrus dynamic discounting
+  command: "ant deploy"
+  args:
+    chdir: "{{ inspy_deployment }}/API/Algorithms/DynamicDiscountingAlgorithm"  
+
+- name: deploy inspyrus email generator
+  expect:
+  args:
+    chdir: "{{ inspy_deployment }}/API/WS/EmailGenerator"
+    command: "ant deploy"    
+    responses:
+      "Please enter Entity Id": "{{ entity_id }}"
+      "Please enter email template files path": "{{ inspyrus_install }}/Entity_Configuration/Email_Templates"
+
+- name: deploy inspyrus mobile api
+  command: "ant deploy"
+  args:
+    chdir: "{{ inspy_deployment }}/API/Mobile/InvAut/JSONService"  
+    
+- name: deploy inspyrus ERPutils
+  expect:
+  args:
+    chdir: "{{ inspy_deployment }}/API/ERPUtils/Oracle"  
+    command: "ant deploy"
+    responses:
+      "please enter Entity Id": "{{ entity_id }}"
+      "Please enter path for EntitySpecificERPUtils and Connect property files": "{{ inspyrus_install }}/Entity_Configuration/API/ERPUtils/OracleEBS_R12_ERPUtils"
+
+# Configure OSB is next in the install instructions - no way to configure that automatically at this time
+#- name: sleep for 10 seconds and configure OSB
+#  wait_for: timeout=10
+#  delegate_to: localhost
+
+- name: deploy inspyrus MDS
+  expect:
+  args:
+    chdir: "{{ inspy_deployment }}/ant-mds"  
+    command: "ant deploy"
+    responses:
+      ":": "http://{{ admin_server_hostname }}"
+      "protocol:": "http://{{ admin_server_hostname }}"
+      ":": "{{ soa_port }}"
+      ":": "{{ osb_port }}"
+      "From Address": "{{ email_from_account }}"
+      "To Address": "{{ email_to_account }}"
+
+- name: deploy inspyrus connector service
+  command: "ant deploy"
+  args:
+    chdir: "{{ inspy_deployment }}/ConnectorService"  
+
+- name: deploy inspyrus BPELs
+  expect:
+  args:
+    timeout: 500 
+    chdir: "{{ inspy_deployment }}/ant-bpel" 
+    command: "ant deploy"  
+    responses:
+      "mode?": "n"
+
+- name: deploy inspyrus CommonInspyWebUtils
+  command: "ant deploy"
+  args:
+    chdir: "{{ inspy_deployment }}/UI/CommonInspyWebUtils"  
+
+- name: deploy inspyrus JavaUI
+  command: "ant deploy"
+  args:
+    chdir: "{{ inspy_deployment }}/UI/JavaUI"  
+
+- name: deploy inspyrus Logos
+  command: "ant deploy"
+  args:
+    chdir: "{{ inspy_deployment }}/UI/Logos"  
+
+- name: deploy inspyrus SPService
+  command: "ant deploy"
+  args:
+    chdir: "{{ inspy_deployment }}/UI/SPService"  
+
+- name: deploy inspyrus InspyrusFormBuilder
+  command: "ant deploy"
+  args:
+    chdir: "{{ inspy_deployment }}/UI/InspyrusFormBuilder"  
+
+- name: deploy inspyrus ConfigUI 
+  command: "ant deploy"
+  args:
+    chdir: "{{ inspy_deployment }}/UI/ConfigUI"  
+
+- name: deploy inspyrus Quartz
+  command: "ant deploy"
+  args:
+    chdir: "{{ inspy_deployment }}/Quartz"  
