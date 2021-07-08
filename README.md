@@ -20,4 +20,4 @@ The playbook includes the following Ansible Roles:
 For execute it alone use the following command
 - $ ansible-playbook weblogic-fmw-domain.yml
 
-Author and Owner - Tim Haggerty
+Author and Owner - timotheuzi
